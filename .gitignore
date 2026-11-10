@@ -1,0 +1,37 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Note: .terraform.lock.hcl is intentionally NOT ignored.
+# The root lock file is committed for reproducible builds and Registry score.
+# Example modules under examples/ also commit their own lock files.
+
+# Pre-commit
+.pre-commit-cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Secrets / keys (never commit test fixtures or SSH keys)
+*.pem
+*.key
+*.pfx
+*.p12
+.terraform.tfstate.lock.info
