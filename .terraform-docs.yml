@@ -1,0 +1,40 @@
+formatter: markdown
+
+header-from: README.md
+footer-from: ""
+
+content: |-
+  {{ .Header }}
+
+  ## Usage
+
+  {{ .Examples }}
+
+  {{ .Providers }}
+
+  {{ .Resources }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  description: false
+  escape: true
+  hide-empty: false
+  html: true
+  indent-level: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true
