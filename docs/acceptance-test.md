@@ -1,5 +1,13 @@
 # Acceptance test — live Windows host (issue #17)
 
+> **Historical report.** Executed against `a7fde96` (PR #33) with provider
+> `0.3.1`. Known deltas vs current code: `manage_wuauserv` now defaults
+> to `false` (Scenario 0 ran with default `true`); the two
+> `terraform_data` guards were removed (#42, native variable validations
+> now, no preconditions); the provider constraint is now
+> `>= 0.4.0, < 0.5.0`. A re-run on the current state is tracked
+> separately (live purge acceptance, #85).
+
 Real-host validation of `terraform-windows-wsus-client` against a Windows
 Server target over OpenSSH. Static checks (`fmt`, `validate`, `tflint`,
 `terraform-docs`) are covered by CI; this document records the live
