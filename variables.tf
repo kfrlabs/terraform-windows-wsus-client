@@ -215,5 +215,5 @@ variable "manage_wuauserv" {
   description = "When true, manages the existing wuauserv service (start_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent_destroy; use 'terraform state rm' to stop managing."
   type        = bool
   nullable    = false
-  default     = true
+  default     = false
 }
