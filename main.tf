@@ -39,10 +39,58 @@ locals {
   # No "false" meaning for this key (ADR-0001); plain number|null passthrough.
   scheduled_hour_effective = var.scheduled_install_hour
 
+  # Registry key paths. The provider hive ("HKLM") is excluded from the
+  # path: WUServer lives at the WU root, UseWUServer in the AU subkey
+  # (PLAN.md §2).
+  wu_path = "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate"
+  au_path = "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU"
+
   # Provisional helpers for the core resources (issue #6 reuses them).
   # Exact lowercase "false" only (ADR-0001, case-sensitive).
   is_wus_disabled = var.server_url == "false"
   is_wus_url      = var.server_url != null && var.server_url != "false"
+}
+
+# Core WSUS server resources (issue #6).
+# server_url = null   -> unmanaged (count = 0, values left alone).
+# server_url = "false" -> UseWUServer = "0", no WUServer value.
+# server_url = <URL>   -> UseWUServer = "1" plus WUServer = <URL>.
+# Removing a managed value (count flipping to 0) destroys it, i.e. the
+# registry value is deleted. Actual delete behaviour on a live host is
+# still to be verified in #17.
+resource "windows_registry_value" "use_wu_server" {
+  count = var.server_url != null ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "UseWUServer"
+  type         = "REG_DWORD"
+  value_string = local.is_wus_url ? "1" : "0"
+}
+
+resource "windows_registry_value" "wu_server" {
+  count = local.is_wus_url ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.wu_path
+  name         = "WUServer"
+  type         = "REG_SZ"
+  value_string = var.server_url
+}
+
+# enable_status_server = true  -> WUStatusServer follows server_url.
+# enable_status_server = false -> value absent (count = 0, deleted if present).
+# enable_status_server = null  -> unmanaged (count = 0).
+# The true-without-server_url combination is rejected later by the
+# cross-variable precondition (issue #11); no precondition here.
+resource "windows_registry_value" "wu_status_server" {
+  count = var.enable_status_server == true ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.wu_path
+  name         = "WUStatusServer"
+  type         = "REG_SZ"
+  value_string = var.server_url
 }
 
 # NOTE: cross-variable lifecycle preconditions (enable_status_server
