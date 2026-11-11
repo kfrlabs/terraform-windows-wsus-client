@@ -11,7 +11,7 @@ variable "server_url" {
 }
 
 variable "enable_status_server" {
-  # Cross-variable rule (PLAN.md §4, enforced by
+  # Cross-variable rule (enforced by
   # terraform_data.cross_variable_validations in main.tf):
   # true requires server_url to be a valid URL. Terraform variable validation
   # cannot reference other variables.
@@ -22,10 +22,10 @@ variable "enable_status_server" {
 }
 
 variable "auto_update_option" {
-  # Cross-variable rule (PLAN.md §4, enforced by
+  # Cross-variable rule (enforced by
   # terraform_data.cross_variable_validations in main.tf):
   # "Scheduled"/"4" requires scheduled_install_day and scheduled_install_hour.
-  description = "AUOptions mode. Puppet names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+)."
+  description = "AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+)."
   type        = string
   nullable    = true
   default     = null
@@ -37,7 +37,7 @@ variable "auto_update_option" {
 }
 
 variable "scheduled_install_day" {
-  description = "Scheduled install day. Puppet names or DWORD values as string: Everyday/0 ... Saturday/7."
+  description = "Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7."
   type        = string
   nullable    = true
   default     = null
@@ -169,7 +169,7 @@ variable "target_group" {
   }
 }
 
-# Reboot/active-hours settings (issue #10, PLAN.md §2 and §4, ADR-0001).
+# Reboot/active-hours settings (ADR-0001).
 # Nullable string with the "false" sentinel (same precedent as issue #9):
 # the issue body says minutes is a number, but "false" must disable the key
 # and a number type cannot hold the string "false".

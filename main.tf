@@ -1,5 +1,5 @@
 locals {
-  # Puppet AUOptions names to registry DWORD values (exact case).
+  # AUOptions names to registry DWORD values (exact case).
   au_options_map = {
     NotifyOnly    = 2
     AutoNotify    = 3
@@ -8,7 +8,7 @@ locals {
     NotifyRestart = 7
   }
 
-  # Puppet install-day names to registry DWORD values (exact case).
+  # Install-day names to registry DWORD values (exact case).
   scheduled_day_map = {
     Everyday  = 0
     Sunday    = 1
@@ -20,7 +20,7 @@ locals {
     Saturday  = 7
   }
 
-  # Effective DWORD values. Each accepts a Puppet name or a numeric string
+  # Effective DWORD values. Each accepts a symbolic name or a numeric string
   # (e.g. "Scheduled" or "4"); null stays null (unmanaged).
   # tonumber() runs only on the numeric-string fallback branch, after null
   # has been excluded (ADR-0001). Input names are validated in variables.tf.
@@ -40,8 +40,7 @@ locals {
   scheduled_hour_effective = var.scheduled_install_hour
 
   # Registry key paths. The provider hive ("HKLM") is excluded from the
-  # path: WUServer lives at the WU root, UseWUServer in the AU subkey
-  # (PLAN.md §2).
+  # path: WUServer lives at the WU root, UseWUServer in the AU subkey.
   wu_path = "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate"
   au_path = "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU"
 
@@ -49,7 +48,7 @@ locals {
   # Exact lowercase "false" only (ADR-0001, case-sensitive).
   is_wus_url = var.server_url != null && var.server_url != "false"
 
-  # Simple booleans (issue #8, PLAN.md §2). null stays null (unmanaged);
+  # Simple booleans. null stays null (unmanaged);
   # true/false map to DWORD "1"/"0". WU root keys vs AU subkey per table.
   boolean_settings = {
     accept_trusted_publisher_certs = {
@@ -89,7 +88,7 @@ locals {
     }
   }
 
-  # Value/Enabled pairs (issue #9, PLAN.md §2). null stays null (unmanaged,
+  # Value/Enabled pairs. null stays null (unmanaged,
   # no resources); "false" disables (value null, Enabled "0"); any other
   # valid value sets the value plus Enabled "1". tonumber() runs only after
   # null/"false" have been excluded (ADR-0001). Exact lowercase "false"
@@ -155,7 +154,7 @@ locals {
     }
   }
 
-  # Reboot/active-hours (issue #10, PLAN.md §2). Nullable strings with the
+  # Reboot/active-hours. Nullable strings with the
   # "false" sentinel (ADR-0001, exact lowercase "false" only).
   # Minutes has no Enabled companion: null or "false" -> no resource
   # (unmanaged equivalent, no key); numeric 15-180 -> 1 DWORD resource.

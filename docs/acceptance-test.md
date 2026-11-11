@@ -110,7 +110,7 @@ AU\ScheduledInstallTime  REG_DWORD    0x2
 AU\UseWUServer           REG_DWORD    0x1
 ```
 
-Matches PLAN.md §2 mapping exactly. Re-plan empty.
+Matches the README registry mapping exactly. Re-plan empty.
 Teardown (`state rm` service + `destroy`): 8 destroyed.
 
 ## Scenario active-hours
@@ -198,7 +198,7 @@ No test state files were committed (`*.tfstate`, `.terraform/`,
 - No unexpected deletion: `destroy` removed exactly the managed values;
   pre-existing `AUOptions = 0x3` survived every cycle (restored once after
   scenarios that legitimately managed it).
-- Registry keys match PLAN.md §2 (types REG_SZ/REG_DWORD, DWORD values).
+- Registry keys match the README registry mapping (types REG_SZ/REG_DWORD, DWORD values).
 - `wuauserv` import-only flow proven: create-without-import fails closed,
   import-then-plan proposes in-place `start_type` only, `destroy` fails
   closed via `prevent_destroy`, `state rm` escape hatch proven.

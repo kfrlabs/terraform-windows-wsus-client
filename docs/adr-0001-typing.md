@@ -1,14 +1,14 @@
 # ADR 0001 — Variable typing for `false` / `null`
 
-- Status: accepted (issue #3).
-- Scope: `PLAN.md` §4, `variables.tf` (already conforming, read-only check).
+- Status: accepted.
+- Scope: `variables.tf` (already conforming, read-only check).
 
 ## Context
 
-The Puppet module `puppetlabs/wsus_client` gives most parameters three
-states: a value, `false` (explicitly disabled), or `undef` (unmanaged).
+Most settings support three
+states: a value, `false` (explicitly disabled), or `null` (unmanaged).
 Terraform variables need one static type per variable, with `null` as the
-equivalent of `undef` (default, unmanaged). The decision covers every
+default (unmanaged). The decision covers every
 value-or-`false` parameter: `server_url`,
 `detection_frequency_hours`, `reboot_relaunch_timeout_minutes`,
 `reboot_warning_timeout_minutes`, `reschedule_wait_time_minutes`,
@@ -24,8 +24,8 @@ booleans and the `scheduled_install_hour` exception.
    in range (`tonumber()` at use site).
 2. **Nullable `number` plus a separate boolean variable per parameter.**
    Rejected: verbose (one extra variable per setting), diverges from the
-   Puppet interface (`false` as a value, not a second flag), and breaks
-   Registry documentation parity with `puppetlabs/wsus_client`.
+   established interface (`false` as a value, not a second flag), and breaks
+   Registry documentation consistency.
 3. **`any` (number or bool).** Rejected: produces poor Registry
    documentation (type renders as `any`), weakens `validation {}` blocks,
    and pushes type errors to `plan`/`apply` instead of input validation.
@@ -40,14 +40,14 @@ booleans and the `scheduled_install_hour` exception.
   `no_auto_reboot_with_logged_on_users`, `no_auto_update`,
   `always_auto_reboot_at_scheduled_time`.
 - Exception: `scheduled_install_hour` stays `number` (`0-23`) — there is
-  no `false` meaning for this key on either the Puppet or registry side.
+  no `false` meaning for this key on the registry side.
 - Semantics for `Value`/`Enabled` pairs:
   - `null` → unmanaged, no resources (`count = 0`);
   - `"false"` (exact lowercase, case-sensitive) → `<Key>Enabled = "0"` only, value resource absent;
   - value → `<Key> = value` + `<Key>Enabled = "1"`.
 - Edge case: `target_group = "false"` means disabled
   (`TargetGroupEnabled = "0"`), so the literal group name `"false"` is
-  unusable. This is documented and inherited from Puppet (`false`).
+  unusable. This is documented (`false` disables the setting).
   `"False"` would create a group of that name instead of disabling;
   #11/#4 to enforce or normalize.
 - `active_hours_start`/`active_hours_end` pair must be both `null`,
