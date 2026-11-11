@@ -217,11 +217,9 @@ resource "windows_registry_value" "wu_status_server" {
   value_string = var.server_url
 }
 
-# Existing Windows Update service (issue #12). Import-only: apply without prior
-# 'terraform import windows_service.wuauserv[0] wuauserv' fails closed (service exists).
-# binary_path is provider-required + ForceNew but host-dependent; the placeholder is
-# ignore_changes-guarded so import keeps the live value and never proposes replacement.
-# status left null = observe-only (do not fight patching/GPO). Live behaviour (#17).
+# Existing Windows Update service (issue #12). Import-only: only start_type is managed;
+# all other attributes keep live values via ignore_changes below (binary_path is
+# provider-required + ForceNew but host-dependent, so import keeps the live value).
 resource "windows_service" "wuauserv" {
   count = var.manage_wuauserv ? 1 : 0
 
@@ -231,7 +229,16 @@ resource "windows_service" "wuauserv" {
 
   lifecycle {
     prevent_destroy = true
-    ignore_changes  = [binary_path]
+    # Import-only: only start_type is managed. All other attributes keep their
+    # live values after import; without this, plan nulls them and Update sends
+    # empty values to Set-Service (fails closed, proven in #17 acceptance).
+    ignore_changes = [
+      binary_path,
+      display_name,
+      description,
+      service_account,
+      dependencies,
+    ]
   }
 }
 
