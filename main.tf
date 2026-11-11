@@ -166,7 +166,6 @@ locals {
   # -> SetActiveHours "1" + Start + End. Any mixed or single-set combination
   # is invalid (rejected by the lifecycle preconditions below, since variable
   # validation cannot cross-reference).
-  active_hours_both_null    = var.active_hours_start == null && var.active_hours_end == null
   active_hours_both_false   = var.active_hours_start == "false" && var.active_hours_end == "false"
   active_hours_both_numeric = var.active_hours_start != null && var.active_hours_start != "false" && var.active_hours_end != null && var.active_hours_end != "false"
   active_hours_set_value    = local.active_hours_both_false ? "0" : "1"
