@@ -5,11 +5,18 @@ Terraform module to manage WSUS (Windows Server Update Service) client settings 
 Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate` (see mapping below), the wuauserv service excepted.
 
 <!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.11 |
+| <a name="requirement_windows"></a> [windows](#requirement\_windows) | >= 0.4.0, < 0.5.0 |
+
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_windows"></a> [windows](#provider\_windows) | 0.4.0 |
+| <a name="provider_windows"></a> [windows](#provider\_windows) | >= 0.4.0, < 0.5.0 |
 
 ## Resources
 

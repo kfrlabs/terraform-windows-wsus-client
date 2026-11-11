@@ -4,6 +4,8 @@ header-from: main.tf
 footer-from: ""
 
 content: |-
+  {{ .Requirements }}
+
   {{ .Providers }}
 
   {{ .Resources }}
@@ -27,7 +29,7 @@ settings:
   hide-empty: false
   html: true
   indent-level: 2
-  lockfile: true
+  lockfile: false
   read-comments: true
   required: true
   sensitive: true
