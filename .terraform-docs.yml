@@ -1,15 +1,9 @@
 formatter: markdown
 
-header-from: README.md
+header-from: main.tf
 footer-from: ""
 
 content: |-
-  {{ .Header }}
-
-  ## Usage
-
-  {{ .Examples }}
-
   {{ .Providers }}
 
   {{ .Resources }}
