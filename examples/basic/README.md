@@ -1,7 +1,7 @@
 # Basic WSUS client example
 
 Points the client at a WSUS server with `server_url` only. All other
-settings stay unmanaged (Puppet `undef` equivalent).
+settings stay unmanaged (null = unmanaged).
 
 ## Usage
 

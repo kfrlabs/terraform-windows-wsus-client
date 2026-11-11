@@ -2,7 +2,7 @@
 
 Terraform module managing WSUS client settings on Windows via the `kfrlabs/windows` provider.
 
-Port of `puppetlabs/wsus_client` 6.x: every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate` (see mapping below), the wuauserv service excepted.
+Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate` (see mapping below), the wuauserv service excepted.
 
 <!-- BEGIN_TF_DOCS -->
 ## Providers
@@ -43,7 +43,7 @@ Port of `puppetlabs/wsus_client` 6.x: every WSUS setting maps to a registry valu
 | <a name="input_always_auto_reboot_at_scheduled_time"></a> [always\_auto\_reboot\_at\_scheduled\_time](#input\_always\_auto\_reboot\_at\_scheduled\_time) | Always auto-reboot at scheduled time (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_always_auto_reboot_at_scheduled_time_minutes"></a> [always\_auto\_reboot\_at\_scheduled\_time\_minutes](#input\_always\_auto\_reboot\_at\_scheduled\_time\_minutes) | Minutes after scheduled install to force reboot, 15-180 (AlwaysAutoRebootAtScheduledTimeMinutes). null unmanaged, "false" leaves the key unmanaged (no resource). | `string` | `null` | no |
 | <a name="input_auto_install_minor_updates"></a> [auto\_install\_minor\_updates](#input\_auto\_install\_minor\_updates) | Auto-install minor updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_auto_update_option"></a> [auto\_update\_option](#input\_auto\_update\_option) | AUOptions mode. Puppet names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+). | `string` | `null` | no |
+| <a name="input_auto_update_option"></a> [auto\_update\_option](#input\_auto\_update\_option) | AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+). | `string` | `null` | no |
 | <a name="input_detection_frequency_hours"></a> [detection\_frequency\_hours](#input\_detection\_frequency\_hours) | Detection frequency in hours, 1-22 (DetectionFrequency). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
 | <a name="input_disable_windows_update_access"></a> [disable\_windows\_update\_access](#input\_disable\_windows\_update\_access) | Disable Windows Update access (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_elevate_non_admins"></a> [elevate\_non\_admins](#input\_elevate\_non\_admins) | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
@@ -54,7 +54,7 @@ Port of `puppetlabs/wsus_client` 6.x: every WSUS setting maps to a registry valu
 | <a name="input_reboot_relaunch_timeout_minutes"></a> [reboot\_relaunch\_timeout\_minutes](#input\_reboot\_relaunch\_timeout\_minutes) | Reboot relaunch timeout in minutes, 1-1440 (RebootRelaunchTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
 | <a name="input_reboot_warning_timeout_minutes"></a> [reboot\_warning\_timeout\_minutes](#input\_reboot\_warning\_timeout\_minutes) | Reboot warning timeout in minutes, 1-30 (RebootWarningTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
 | <a name="input_reschedule_wait_time_minutes"></a> [reschedule\_wait\_time\_minutes](#input\_reschedule\_wait\_time\_minutes) | Reschedule wait time in minutes, 1-60 (RescheduleWaitTime). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_scheduled_install_day"></a> [scheduled\_install\_day](#input\_scheduled\_install\_day) | Scheduled install day. Puppet names or DWORD values as string: Everyday/0 ... Saturday/7. | `string` | `null` | no |
+| <a name="input_scheduled_install_day"></a> [scheduled\_install\_day](#input\_scheduled\_install\_day) | Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7. | `string` | `null` | no |
 | <a name="input_scheduled_install_hour"></a> [scheduled\_install\_hour](#input\_scheduled\_install\_hour) | Scheduled install hour, 0-23 (maps to ScheduledInstallTime). | `number` | `null` | no |
 | <a name="input_server_url"></a> [server\_url](#input\_server\_url) | WSUS server URL (http(s)://...). "false" disables UseWUServer. null leaves settings unmanaged. | `string` | `null` | no |
 | <a name="input_target_group"></a> [target\_group](#input\_target\_group) | Target group name (TargetGroup). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
@@ -87,18 +87,18 @@ and [`examples/active-hours`](examples/active-hours) (plus Active Hours).
 Note the examples use `source = "../.."` for local development; replace with
 the Registry source above when consuming the published module.
 
-## Puppet to Terraform mapping
+## Registry mapping
 
 Base: `hive = "HKLM"`. The provider `path` excludes the hive:
 `SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate` (WU root) and
 `...\WindowsUpdate\AU` (AU subkey).
 
-`null` (default) leaves a setting unmanaged (no resource, Puppet `undef`
-equivalent). `"false"` (exact lowercase, case-sensitive per ADR-0001)
+`null` (default) leaves a setting unmanaged (no resource).
+`"false"` (exact lowercase, case-sensitive per ADR-0001)
 disables a setting. Any other value manages it. All `REG_DWORD` values are
 written as decimal strings (e.g. `"4"`), as required by the provider.
 
-| Puppet param | Registry key(s) | TF input | null / `"false"` / value effect |
+| Setting | Registry key(s) | TF input | null / `"false"` / value effect |
 |---|---|---|---|
 | `server_url` | `AU\UseWUServer` DWORD, `WUServer` REG_SZ (WU root) | `server_url` (string) | `null` unmanaged; `"false"` → `UseWUServer = "0"` only; URL → `"1"` + `WUServer = url` |
 | `enable_status_server` | `WUStatusServer` REG_SZ (WU root) | `enable_status_server` (bool) | `null` unmanaged; `false` absent; `true` → `= server_url` (requires `server_url` URL) |
@@ -124,7 +124,7 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 ## Limitations
 
 - **Group Policy conflict.** If a GPO manages the same `WindowsUpdate` keys (or the `wuauserv` startup type), Terraform and GPO will fight. Do not use this module for keys a GPO controls.
-- **`purge_values` unsupported.** The Puppet `registry_key purge => true` behaviour has no equivalent: the `kfrlabs/windows` provider offers `windows_registry_value` only (keys are created implicitly). Stale values must be cleaned up manually (e.g. `Remove-ItemProperty`).
+- **No key purge.** There is no registry-key purge behaviour: the `kfrlabs/windows` provider offers `windows_registry_value` only (keys are created implicitly). Stale values must be cleaned up manually (e.g. `Remove-ItemProperty`).
 - **`AUOptions = 7` (`NotifyRestart`) requires Windows Server 2016 or later.**
 - **`"false"` literal edge.** `target_group = "false"` means disabled (`TargetGroupEnabled = "0"`), so a group literally named `false` cannot be managed. `"False"` (capital F) would create a group of that name instead of disabling. Same exact-lowercase rule applies to every `"false"` sentinel.
 
@@ -152,3 +152,7 @@ terraform state rm 'windows_service.wuauserv[0]'
 Note: if Group Policy controls the Windows Update service startup type,
 Terraform and GPO will fight; prefer leaving the service unmanaged in that
 case. Live host behaviour is verified in #17.
+
+## Credits
+
+Design inspired by the `puppetlabs/wsus_client` Puppet module.
