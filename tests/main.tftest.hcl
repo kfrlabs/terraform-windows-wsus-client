@@ -104,6 +104,7 @@ run "update_service_url_alternate" {
   command = plan
 
   variables {
+    server_url                   = "http://wsus.example.lan:8530"
     update_service_url_alternate = "http://cdn.example.lan:8530"
   }
 
@@ -219,7 +220,33 @@ run "update_service_url_alternate_ftp_rejected" {
   command = plan
 
   variables {
+    server_url                   = "http://wsus.example.lan:8530"
     update_service_url_alternate = "ftp://cdn.example.lan"
+  }
+
+  expect_failures = [
+    var.update_service_url_alternate,
+  ]
+}
+
+run "update_service_url_alternate_without_server_rejected" {
+  command = plan
+
+  variables {
+    update_service_url_alternate = "http://cdn.example.lan:8530"
+  }
+
+  expect_failures = [
+    var.update_service_url_alternate,
+  ]
+}
+
+run "update_service_url_alternate_with_server_false_rejected" {
+  command = plan
+
+  variables {
+    server_url                   = "false"
+    update_service_url_alternate = "http://cdn.example.lan:8530"
   }
 
   expect_failures = [
