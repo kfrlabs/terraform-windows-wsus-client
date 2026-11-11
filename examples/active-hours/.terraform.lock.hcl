@@ -3,7 +3,7 @@
 
 provider "registry.terraform.io/kfrlabs/windows" {
   version     = "0.3.1"
-  constraints = ">= 0.0.6"
+  constraints = ">= 0.3.1, < 0.4.0"
   hashes = [
     "h1:0cHDA6RE6yxSsGu/G8hAJap2ZtgrRuyBYMFkGrZRrEk=",
     "zh:0844be4763373d207ad1805fca775628b2209bef4b6c4f361f9dd5bf67bbe227",

@@ -4,7 +4,7 @@ terraform {
   required_providers {
     windows = {
       source  = "kfrlabs/windows"
-      version = ">= 0.0.6"
+      version = ">= 0.3.1, < 0.4.0"
     }
   }
 }
