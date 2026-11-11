@@ -32,6 +32,11 @@ variable "status_server_url" {
     condition     = var.status_server_url == null || can(regex("^https?://([[][^]\\s/]+[]]|[^\\]\\s/:[]+)(:[0-9]{1,5})?(/\\S*)?$", var.status_server_url))
     error_message = "status_server_url must be null or a valid http(s) URL (scheme, host, optional port and path, no spaces)."
   }
+
+  validation {
+    condition     = var.status_server_url == null || var.enable_status_server == true
+    error_message = "status_server_url has no effect unless enable_status_server is true."
+  }
 }
 
 variable "update_service_url_alternate" {

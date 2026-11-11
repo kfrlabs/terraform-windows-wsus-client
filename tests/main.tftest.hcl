@@ -188,6 +188,33 @@ run "status_server_url_bare_scheme_rejected" {
   ]
 }
 
+run "status_server_url_without_flag_rejected" {
+  command = plan
+
+  variables {
+    server_url        = "http://wsus.example.lan:8530"
+    status_server_url = "http://status.example.lan:8530"
+  }
+
+  expect_failures = [
+    var.status_server_url,
+  ]
+}
+
+run "status_server_url_with_flag_false_rejected" {
+  command = plan
+
+  variables {
+    server_url           = "http://wsus.example.lan:8530"
+    enable_status_server = false
+    status_server_url    = "http://status.example.lan:8530"
+  }
+
+  expect_failures = [
+    var.status_server_url,
+  ]
+}
+
 run "update_service_url_alternate_ftp_rejected" {
   command = plan
 
