@@ -19,13 +19,13 @@ The `wuauserv` service resource is import-only (see the root README
 "Importing wuauserv" section): import it before the first apply.
 
 ```sh
-terraform import 'module.wsus.windows_service.wuauserv[0]' wuauserv
+terraform import 'module.wsus_client.windows_service.wuauserv[0]' wuauserv
 ```
 
 ## Registry use
 
 ```hcl
-# module "wsus" {
+# module "wsus_client" {
 #   source     = "kfrlabs/wsus-client/windows"
 #   version    = "~> 1.0"
 #   server_url = "http://wsus.example.lan:8530"

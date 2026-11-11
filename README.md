@@ -77,7 +77,7 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 ## Usage
 
 ```hcl
-module "wsus" {
+module "wsus_client" {
   source     = "kfrlabs/wsus-client/windows"
   version    = "~> 1.0"
   server_url = "http://wsus.example.lan:8530"
@@ -147,8 +147,8 @@ fails closed.
 
 ```sh
 terraform import 'windows_service.wuauserv[0]' wuauserv
-# When consumed as a child module named "wsus":
-terraform import 'module.wsus.windows_service.wuauserv[0]' wuauserv
+# When consumed as a child module named "wsus_client":
+terraform import 'module.wsus_client.windows_service.wuauserv[0]' wuauserv
 ```
 
 `manage_wuauserv = false` removes the resource from the plan, but

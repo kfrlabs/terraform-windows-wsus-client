@@ -4,7 +4,7 @@ provider "windows" {
   password = var.windows_password # prefer private_key_path in real use; env fallback supported
 }
 
-module "wsus" {
+module "wsus_client" {
   source = "../.."
 
   server_url = "http://wsus.example.lan:8530"
