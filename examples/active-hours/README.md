@@ -32,16 +32,18 @@ terraform import 'module.wsus_client.windows_service.wuauserv[0]' wuauserv
 
 ## Registry use
 
+To consume the published module, use the snippet below instead of `source = "../.."`.
+
 ```hcl
-# module "wsus_client" {
-#   source                 = "kfrlabs/wsus-client/windows"
-#   version                = "~> 1.0"
-#   server_url             = "https://wsus.example.lan:8531"
-#   enable_status_server   = true
-#   auto_update_option     = "Scheduled"
-#   scheduled_install_day  = "Tuesday"
-#   scheduled_install_hour = 2
-#   active_hours_start     = "8"
-#   active_hours_end       = "18"
-# }
+module "wsus_client" {
+  source                 = "kfrlabs/wsus-client/windows"
+  version                = "~> 1.0"
+  server_url             = "https://wsus.example.lan:8531"
+  enable_status_server   = true
+  auto_update_option     = "Scheduled"
+  scheduled_install_day  = "Tuesday"
+  scheduled_install_hour = 2
+  active_hours_start     = "8"
+  active_hours_end       = "18"
+}
 ```
