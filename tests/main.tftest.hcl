@@ -125,6 +125,107 @@ run "update_service_url_alternate_invalid_rejected" {
   ]
 }
 
+run "server_url_bare_scheme_rejected" {
+  command = plan
+
+  variables {
+    server_url = "http://"
+  }
+
+  expect_failures = [
+    var.server_url,
+  ]
+}
+
+run "server_url_with_space_rejected" {
+  command = plan
+
+  variables {
+    server_url = "http://wsus example.lan:8530"
+  }
+
+  expect_failures = [
+    var.server_url,
+  ]
+}
+
+run "server_url_ftp_scheme_rejected" {
+  command = plan
+
+  variables {
+    server_url = "ftp://wsus.example.lan"
+  }
+
+  expect_failures = [
+    var.server_url,
+  ]
+}
+
+run "server_url_with_port_and_path" {
+  command = plan
+
+  variables {
+    server_url = "https://wsus.example.lan:8531/wsus"
+  }
+
+  assert {
+    condition     = output.wu_server == "https://wsus.example.lan:8531/wsus"
+    error_message = "wu_server output should echo a valid server_url with port and path."
+  }
+}
+
+run "status_server_url_bare_scheme_rejected" {
+  command = plan
+
+  variables {
+    server_url           = "http://wsus.example.lan:8530"
+    enable_status_server = true
+    status_server_url    = "http://"
+  }
+
+  expect_failures = [
+    var.status_server_url,
+  ]
+}
+
+run "update_service_url_alternate_ftp_rejected" {
+  command = plan
+
+  variables {
+    update_service_url_alternate = "ftp://cdn.example.lan"
+  }
+
+  expect_failures = [
+    var.update_service_url_alternate,
+  ]
+}
+
+run "server_url_ipv6_with_port" {
+  command = plan
+
+  variables {
+    server_url = "http://[::1]:8530"
+  }
+
+  assert {
+    condition     = output.wu_server == "http://[::1]:8530"
+    error_message = "wu_server output should echo a valid bracketed-IPv6 server_url."
+  }
+}
+
+run "status_server_requires_valid_url" {
+  command = plan
+
+  variables {
+    server_url           = "http://"
+    enable_status_server = true
+  }
+
+  expect_failures = [
+    var.server_url,
+  ]
+}
+
 run "modern_booleans" {
   command = plan
 
