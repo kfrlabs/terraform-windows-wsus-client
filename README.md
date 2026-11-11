@@ -48,7 +48,7 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_disable_windows_update_access"></a> [disable\_windows\_update\_access](#input\_disable\_windows\_update\_access) | Disable Windows Update access (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_elevate_non_admins"></a> [elevate\_non\_admins](#input\_elevate\_non\_admins) | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_enable_status_server"></a> [enable\_status\_server](#input\_enable\_status\_server) | When true, WUStatusServer follows server\_url. null leaves it unmanaged. | `bool` | `null` | no |
-| <a name="input_manage_wuauserv"></a> [manage\_wuauserv](#input\_manage\_wuauserv) | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `true` | no |
+| <a name="input_manage_wuauserv"></a> [manage\_wuauserv](#input\_manage\_wuauserv) | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `false` | no |
 | <a name="input_no_auto_reboot_with_logged_on_users"></a> [no\_auto\_reboot\_with\_logged\_on\_users](#input\_no\_auto\_reboot\_with\_logged\_on\_users) | No auto-reboot with logged-on users (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_no_auto_update"></a> [no\_auto\_update](#input\_no\_auto\_update) | Disable automatic updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_reboot_relaunch_timeout_minutes"></a> [reboot\_relaunch\_timeout\_minutes](#input\_reboot\_relaunch\_timeout\_minutes) | Reboot relaunch timeout in minutes, 1-1440 (RebootRelaunchTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
@@ -119,7 +119,7 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 | `target_group` | `TargetGroup` REG_SZ + `TargetGroupEnabled` DWORD (WU root) | string | name → value + `Enabled = "1"`; `"false"` → `Enabled = "0"` only; `null` nothing |
 | `always_auto_reboot_at_scheduled_time_minutes` | `AU\AlwaysAutoRebootAtScheduledTimeMinutes` DWORD | string | `15-180` → one DWORD resource; `null`/`"false"` → no resource (unmanaged equivalent) |
 | `active_hours_start` / `active_hours_end` | `SetActiveHours` + `ActiveHoursStart` + `ActiveHoursEnd` DWORD (WU root) | string pair | Both `null` → nothing; both `"false"` → `SetActiveHours = "0"` only; both `0-23` → `"1"` + Start + End. Mixed states rejected |
-| service `wuauserv` | `enable => true` | `manage_wuauserv` (bool, default `true`) | Import-only (see below). `false` removes it from the plan but `prevent_destroy` fails closed |
+| service `wuauserv` | `enable => true` | `manage_wuauserv` (bool, default `false`) | Opt-in, import-only (see below). `false` leaves the service unmanaged |
 
 ## Limitations
 
@@ -130,10 +130,12 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 
 ## Importing wuauserv
 
-`windows_service.wuauserv` manages the pre-existing Windows Update service.
-The provider's Delete really deletes the service and Create fails when the
-service already exists, so the resource is import-only: run `terraform import`
-before the first `terraform apply`, otherwise apply fails closed.
+`windows_service.wuauserv` manages the pre-existing Windows Update service,
+but only when `manage_wuauserv = true` (default `false`: opt-in, the service
+is left unmanaged). The provider's Delete really deletes the service and
+Create fails when the service already exists, so the resource is import-only:
+run `terraform import` before the first `terraform apply`, otherwise apply
+fails closed.
 
 ```sh
 terraform import 'windows_service.wuauserv[0]' wuauserv
