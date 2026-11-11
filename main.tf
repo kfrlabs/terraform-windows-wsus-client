@@ -155,6 +155,25 @@ locals {
       value = var.target_group == null ? null : (var.target_group == "false" ? "0" : "1")
     }
   }
+
+  # Reboot/active-hours (issue #10, PLAN.md §2). Nullable strings with the
+  # "false" sentinel (ADR-0001, exact lowercase "false" only).
+  # Minutes has no Enabled companion: null or "false" -> no resource
+  # (unmanaged equivalent, no key); numeric 15-180 -> 1 DWORD resource.
+  # tonumber() runs only after null/"false" have been excluded (ADR-0001).
+  reboot_minutes_value = var.always_auto_reboot_at_scheduled_time_minutes == null || var.always_auto_reboot_at_scheduled_time_minutes == "false" ? null : tostring(tonumber(var.always_auto_reboot_at_scheduled_time_minutes))
+
+  # Active Hours joint state (2 inputs -> 3 resources): both null -> 0
+  # resources; both "false" -> SetActiveHours "0" only; both numeric 0-23
+  # -> SetActiveHours "1" + Start + End. Any mixed or single-set combination
+  # is invalid (rejected by the lifecycle preconditions below, since variable
+  # validation cannot cross-reference).
+  active_hours_both_null    = var.active_hours_start == null && var.active_hours_end == null
+  active_hours_both_false   = var.active_hours_start == "false" && var.active_hours_end == "false"
+  active_hours_both_numeric = var.active_hours_start != null && var.active_hours_start != "false" && var.active_hours_end != null && var.active_hours_end != "false"
+  active_hours_set_value    = local.active_hours_both_false ? "0" : "1"
+  active_hours_start_value  = local.active_hours_both_numeric ? tostring(tonumber(var.active_hours_start)) : null
+  active_hours_end_value    = local.active_hours_both_numeric ? tostring(tonumber(var.active_hours_end)) : null
 }
 
 # Core WSUS server resources (issue #6).
@@ -277,4 +296,70 @@ resource "windows_registry_value" "pair_enabled" {
   name         = each.value.name
   type         = "REG_DWORD"
   value_string = each.value.value
+}
+
+# Reboot minutes (issue #10). null or "false" -> no resource (unmanaged,
+# no key); numeric 15-180 -> 1 DWORD resource. Removing a managed value
+# (var flipping back to null/"false") destroys it, i.e. the registry value
+# is deleted. Actual delete behaviour on a live host is still to be verified
+# in #17.
+resource "windows_registry_value" "always_auto_reboot_minutes" {
+  count = local.reboot_minutes_value != null ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "AlwaysAutoRebootAtScheduledTimeMinutes"
+  type         = "REG_DWORD"
+  value_string = local.reboot_minutes_value
+}
+
+# Active Hours (issue #10). Both null -> 0 resources; both "false" ->
+# SetActiveHours "0" only; both numeric 0-23 -> all 3 resources. Mixed
+# false/numeric or single-set combinations are rejected by the
+# preconditions below (variable validation cannot cross-reference; issue
+# #11 will extend these preconditions for the remaining cross-variable
+# rules). Removing a managed value destroys it, i.e. the registry value is
+# deleted. Actual delete behaviour on a live host is still to be verified
+# in #17.
+resource "windows_registry_value" "set_active_hours" {
+  count = local.active_hours_both_false || local.active_hours_both_numeric ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "SetActiveHours"
+  type         = "REG_DWORD"
+  value_string = local.active_hours_set_value
+}
+
+resource "windows_registry_value" "active_hours_start" {
+  count = local.active_hours_both_numeric ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "ActiveHoursStart"
+  type         = "REG_DWORD"
+  value_string = local.active_hours_start_value
+}
+
+resource "windows_registry_value" "active_hours_end" {
+  count = local.active_hours_both_numeric ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "ActiveHoursEnd"
+  type         = "REG_DWORD"
+  value_string = local.active_hours_end_value
+}
+
+# Always-evaluated pairing guard (issue #10 AC1). The per-resource
+# preconditions above live on counted resources, so they are skipped when
+# count = 0 — exactly the invalid single-set/mixed states. This
+# uncounted resource always evaluates, rejecting those states.
+resource "terraform_data" "active_hours_pair" {
+  lifecycle {
+    precondition {
+      condition     = local.active_hours_both_null || local.active_hours_both_false || local.active_hours_both_numeric
+      error_message = "active_hours_start and active_hours_end must both be null, both be \"false\", or both be integer strings between 0 and 23."
+    }
+  }
 }
