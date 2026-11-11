@@ -29,7 +29,7 @@ variable "auto_update_option" {
   default     = null
 
   validation {
-    condition     = var.auto_update_option == null || contains(["NotifyOnly", "AutoNotify", "Scheduled", "AutoInstall", "NotifyRestart", "2", "3", "4", "5", "7"], var.auto_update_option)
+    condition     = var.auto_update_option == null ? true : contains(["NotifyOnly", "AutoNotify", "Scheduled", "AutoInstall", "NotifyRestart", "2", "3", "4", "5", "7"], var.auto_update_option)
     error_message = "auto_update_option must be one of: NotifyOnly, AutoNotify, Scheduled, AutoInstall, NotifyRestart, 2, 3, 4, 5, 7."
   }
 }
@@ -41,7 +41,7 @@ variable "scheduled_install_day" {
   default     = null
 
   validation {
-    condition     = var.scheduled_install_day == null || contains(["Everyday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "0", "1", "2", "3", "4", "5", "6", "7"], var.scheduled_install_day)
+    condition     = var.scheduled_install_day == null ? true : contains(["Everyday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "0", "1", "2", "3", "4", "5", "6", "7"], var.scheduled_install_day)
     error_message = "scheduled_install_day must be one of: Everyday, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, 0-7."
   }
 }
@@ -53,7 +53,7 @@ variable "scheduled_install_hour" {
   default     = null
 
   validation {
-    condition     = var.scheduled_install_hour == null || (var.scheduled_install_hour >= 0 && var.scheduled_install_hour <= 23 && floor(var.scheduled_install_hour) == var.scheduled_install_hour)
+    condition     = var.scheduled_install_hour == null ? true : (var.scheduled_install_hour >= 0 && var.scheduled_install_hour <= 23 && floor(var.scheduled_install_hour) == var.scheduled_install_hour)
     error_message = "scheduled_install_hour must be an integer between 0 and 23."
   }
 }
