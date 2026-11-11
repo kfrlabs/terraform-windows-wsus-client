@@ -206,8 +206,8 @@ resource "windows_registry_value" "wu_server" {
 # enable_status_server = true  -> WUStatusServer follows server_url.
 # enable_status_server = false -> value absent (count = 0, deleted if present).
 # enable_status_server = null  -> unmanaged (count = 0).
-# The true-without-server_url combination is rejected later by the
-# cross-variable precondition (issue #11); no precondition here.
+# The true-without-server_url combination is rejected by
+# terraform_data.cross_variable_validations below; no precondition here.
 resource "windows_registry_value" "wu_status_server" {
   count = var.enable_status_server == true ? 1 : 0
 
@@ -224,7 +224,8 @@ resource "windows_registry_value" "wu_status_server" {
 # Removing a managed value (count flipping to 0) destroys it, i.e. the
 # registry value is deleted. Actual delete behaviour on a live host is
 # still to be verified in #17. Scheduled mode additionally requires day +
-# hour; that cross-variable rule is enforced later (issue #11).
+# hour; that cross-variable rule is enforced by
+# terraform_data.cross_variable_validations below.
 resource "windows_registry_value" "au_options" {
   count = var.auto_update_option != null ? 1 : 0
 
@@ -255,9 +256,28 @@ resource "windows_registry_value" "scheduled_install_hour" {
   value_string = tostring(local.scheduled_hour_effective)
 }
 
-# NOTE: cross-variable lifecycle preconditions (enable_status_server
-# requiring a server_url URL, Scheduled requiring day + hour) will be
-# enforced here in issue #11. Placeholder only — no preconditions yet.
+# Cross-variable validations (issue #11). Uncounted guard so the
+# preconditions always evaluate (preconditions on count=0 resources are
+# skipped). Kept separate from terraform_data.active_hours_pair to keep the
+# Active Hours guard focused.
+resource "terraform_data" "cross_variable_validations" {
+  lifecycle {
+    precondition {
+      condition     = var.enable_status_server != true || (var.server_url != null && var.server_url != "false" && can(regex("^https?://", var.server_url)))
+      error_message = "enable_status_server requires server_url to be a valid http(s) URL (server_url must not be null or \"false\" when enable_status_server is true)."
+    }
+
+    precondition {
+      condition     = !(var.auto_update_option == "Scheduled" || var.auto_update_option == "4") || (var.scheduled_install_day != null && var.scheduled_install_hour != null)
+      error_message = "auto_update_option \"Scheduled\"/\"4\" requires both scheduled_install_day and scheduled_install_hour to be set."
+    }
+
+    precondition {
+      condition     = (var.reschedule_wait_time_minutes == null) || (var.auto_update_option == "Scheduled" || var.auto_update_option == "4")
+      error_message = "reschedule_wait_time_minutes (including \"false\") requires auto_update_option to be \"Scheduled\"/\"4\"."
+    }
+  }
+}
 
 # Simple booleans (issue #8). One resource per non-null entry; null entries
 # are filtered out (unmanaged). Removing a managed value (var flipping back

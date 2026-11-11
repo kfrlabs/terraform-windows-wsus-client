@@ -11,7 +11,8 @@ variable "server_url" {
 }
 
 variable "enable_status_server" {
-  # Cross-variable rule (PLAN.md §4, enforced via lifecycle precondition in main.tf – step 2):
+  # Cross-variable rule (PLAN.md §4, enforced by
+  # terraform_data.cross_variable_validations in main.tf):
   # true requires server_url to be a valid URL. Terraform variable validation
   # cannot reference other variables.
   description = "When true, WUStatusServer follows server_url. null leaves it unmanaged."
@@ -21,7 +22,8 @@ variable "enable_status_server" {
 }
 
 variable "auto_update_option" {
-  # Cross-variable rule (PLAN.md §4, precondition in main.tf – step 2):
+  # Cross-variable rule (PLAN.md §4, enforced by
+  # terraform_data.cross_variable_validations in main.tf):
   # "Scheduled"/"4" requires scheduled_install_day and scheduled_install_hour.
   description = "AUOptions mode. Puppet names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+)."
   type        = string
