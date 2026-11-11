@@ -93,6 +93,43 @@ resource "windows_registry_value" "wu_status_server" {
   value_string = var.server_url
 }
 
+# AUOptions scheduling resources (issue #7).
+# AUOptions = 7 (NotifyRestart) requires Windows Server 2016 or later.
+# null -> unmanaged (count = 0, values left alone).
+# Removing a managed value (count flipping to 0) destroys it, i.e. the
+# registry value is deleted. Actual delete behaviour on a live host is
+# still to be verified in #17. Scheduled mode additionally requires day +
+# hour; that cross-variable rule is enforced later (issue #11).
+resource "windows_registry_value" "au_options" {
+  count = var.auto_update_option != null ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "AUOptions"
+  type         = "REG_DWORD"
+  value_string = tostring(local.au_options_effective)
+}
+
+resource "windows_registry_value" "scheduled_install_day" {
+  count = var.scheduled_install_day != null ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "ScheduledInstallDay"
+  type         = "REG_DWORD"
+  value_string = tostring(local.scheduled_day_effective)
+}
+
+resource "windows_registry_value" "scheduled_install_hour" {
+  count = var.scheduled_install_hour != null ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.au_path
+  name         = "ScheduledInstallTime"
+  type         = "REG_DWORD"
+  value_string = tostring(local.scheduled_hour_effective)
+}
+
 # NOTE: cross-variable lifecycle preconditions (enable_status_server
 # requiring a server_url URL, Scheduled requiring day + hour) will be
 # enforced here in issue #11. Placeholder only — no preconditions yet.
