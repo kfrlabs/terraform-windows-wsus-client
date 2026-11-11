@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No changes yet beyond the `1.0.0` scope below.
 
-## 1.0.0 - TBD (tracks #18)
+## 1.0.0 - 2026-11-11 (tracks #18)
 
 First Registry release. Constraints: Terraform `>= 1.11`, provider
 `kfrlabs/windows` `>= 0.4.0, < 0.5.0`.
