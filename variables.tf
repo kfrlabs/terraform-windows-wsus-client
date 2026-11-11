@@ -11,7 +11,7 @@ variable "server_url" {
 }
 
 variable "enable_status_server" {
-  description = "When true, WUStatusServer follows server_url. null leaves it unmanaged."
+  description = "When true, WUStatusServer follows server_url. false and null leave it unmanaged (a previously managed value is deleted; use purge_unknown_wu_values for unmanaged values)."
   type        = bool
   nullable    = true
   default     = null

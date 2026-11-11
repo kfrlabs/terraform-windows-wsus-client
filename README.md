@@ -49,7 +49,7 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_disable_windows_update_access"></a> [disable\_windows\_update\_access](#input\_disable\_windows\_update\_access) | Disable Windows Update access (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_do_not_enforce_tls_cert_pinning"></a> [do\_not\_enforce\_tls\_cert\_pinning](#input\_do\_not\_enforce\_tls\_cert\_pinning) | Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_elevate_non_admins"></a> [elevate\_non\_admins](#input\_elevate\_non\_admins) | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_enable_status_server"></a> [enable\_status\_server](#input\_enable\_status\_server) | When true, WUStatusServer follows server\_url. null leaves it unmanaged. | `bool` | `null` | no |
+| <a name="input_enable_status_server"></a> [enable\_status\_server](#input\_enable\_status\_server) | When true, WUStatusServer follows server\_url. false and null leave it unmanaged (a previously managed value is deleted; use purge\_unknown\_wu\_values for unmanaged values). | `bool` | `null` | no |
 | <a name="input_manage_wuauserv"></a> [manage\_wuauserv](#input\_manage\_wuauserv) | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `false` | no |
 | <a name="input_no_auto_reboot_with_logged_on_users"></a> [no\_auto\_reboot\_with\_logged\_on\_users](#input\_no\_auto\_reboot\_with\_logged\_on\_users) | No auto-reboot with logged-on users (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_no_auto_update"></a> [no\_auto\_update](#input\_no\_auto\_update) | Disable automatic updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
@@ -112,7 +112,7 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 | Setting | Registry key(s) | TF input | null / `"false"` / value effect |
 |---|---|---|---|
 | `server_url` | `AU\UseWUServer` DWORD, `WUServer` REG_SZ (WU root) | `server_url` (string) | `null` unmanaged; `"false"` → `UseWUServer = "0"` only; URL → `"1"` + `WUServer = url` |
-| `enable_status_server` | `WUStatusServer` REG_SZ (WU root) | `enable_status_server` (bool) | `null` unmanaged; `false` absent; `true` → `= status_server_url` if set, else `= server_url` (requires `server_url` URL) |
+| `enable_status_server` | `WUStatusServer` REG_SZ (WU root) | `enable_status_server` (bool) | `null`/`false` unmanaged (previously managed value deleted; use purge_unknown_wu_values for unmanaged values); `true` → `= status_server_url` if set, else `= server_url` (requires `server_url` URL) |
 | `status_server_url` | `WUStatusServer` REG_SZ (WU root) | `status_server_url` (string) | `null` → follows `server_url`; URL → that value (only used when `enable_status_server = true`) |
 | `update_service_url_alternate` | `UpdateServiceUrlAlternate` REG_SZ (WU root) | string | `null` unmanaged; URL → managed (alternate download server, requires `server_url` URL) |
 | `auto_update_option` | `AU\AUOptions` DWORD | `auto_update_option` (string) | `NotifyOnly`/`2`, `AutoNotify`/`3`, `Scheduled`/`4`, `AutoInstall`/`5`, `NotifyRestart`/`7` (`7` = Server 2016+). `Scheduled` requires day + hour |
