@@ -1,6 +1,6 @@
 # terraform-windows-wsus-client
 
-Terraform module managing WSUS client settings on Windows via the `kfrlabs/windows` provider.
+Terraform module to manage WSUS (Windows Server Update Service) client settings on Windows via the `kfrlabs/windows` provider.
 
 Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate` (see mapping below), the wuauserv service excepted.
 
