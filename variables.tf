@@ -37,6 +37,11 @@ variable "auto_update_option" {
     condition     = !(var.auto_update_option == "Scheduled" || var.auto_update_option == "4") || (var.scheduled_install_day != null && var.scheduled_install_hour != null)
     error_message = "auto_update_option \"Scheduled\"/\"4\" requires both scheduled_install_day and scheduled_install_hour to be set."
   }
+
+  validation {
+    condition     = (var.scheduled_install_day == null && var.scheduled_install_hour == null) || var.auto_update_option == "Scheduled" || var.auto_update_option == "4"
+    error_message = "scheduled_install_day/scheduled_install_hour have no effect unless auto_update_option is \"Scheduled\"/\"4\"."
+  }
 }
 
 variable "scheduled_install_day" {
@@ -172,8 +177,8 @@ variable "target_group" {
   default     = null
 
   validation {
-    condition     = var.target_group == null ? true : (var.target_group != "" && trimspace(var.target_group) != "")
-    error_message = "target_group must be null, \"false\", or a non-empty string."
+    condition     = var.target_group == null ? true : var.target_group == "false" ? true : (trimspace(var.target_group) != "" && lower(var.target_group) != "false")
+    error_message = "target_group must be null, \"false\" (exact lowercase), or a non-empty group name; case variants of \"false\" (e.g. \"False\", \"FALSE\") are rejected."
   }
 }
 
@@ -219,6 +224,17 @@ variable "active_hours_end" {
   validation {
     condition     = (var.active_hours_start == null && var.active_hours_end == null) || (var.active_hours_start == "false" && var.active_hours_end == "false") || (var.active_hours_start != null && var.active_hours_start != "false" && var.active_hours_end != null && var.active_hours_end != "false")
     error_message = "active_hours_start and active_hours_end must both be null, both be \"false\", or both be integer strings between 0 and 23."
+  }
+
+  validation {
+    condition = (
+      var.active_hours_start == null || var.active_hours_start == "false" || var.active_hours_end == null || var.active_hours_end == "false"
+      ? true
+      : !(can(tonumber(var.active_hours_start)) && can(tonumber(var.active_hours_end)))
+      ? true
+      : ((tonumber(var.active_hours_end) - tonumber(var.active_hours_start) + 24) % 24) >= 1 && ((tonumber(var.active_hours_end) - tonumber(var.active_hours_start) + 24) % 24) <= 18
+    )
+    error_message = "active_hours range must be between 1 and 18 hours (start must differ from end; range wraps modulo 24)."
   }
 }
 
