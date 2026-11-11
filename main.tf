@@ -89,6 +89,72 @@ locals {
       value = var.always_auto_reboot_at_scheduled_time == null ? null : (var.always_auto_reboot_at_scheduled_time ? "1" : "0")
     }
   }
+
+  # Value/Enabled pairs (issue #9, PLAN.md §2). null stays null (unmanaged,
+  # no resources); "false" disables (value null, Enabled "0"); any other
+  # valid value sets the value plus Enabled "1". tonumber() runs only after
+  # null/"false" have been excluded (ADR-0001). Exact lowercase "false"
+  # only (ADR-0001, case-sensitive).
+  pair_values = {
+    detection_frequency_hours = {
+      path  = local.au_path
+      name  = "DetectionFrequency"
+      type  = "REG_DWORD"
+      value = var.detection_frequency_hours == null || var.detection_frequency_hours == "false" ? null : tostring(tonumber(var.detection_frequency_hours))
+    }
+    reboot_relaunch_timeout_minutes = {
+      path  = local.au_path
+      name  = "RebootRelaunchTimeout"
+      type  = "REG_DWORD"
+      value = var.reboot_relaunch_timeout_minutes == null || var.reboot_relaunch_timeout_minutes == "false" ? null : tostring(tonumber(var.reboot_relaunch_timeout_minutes))
+    }
+    reboot_warning_timeout_minutes = {
+      path  = local.au_path
+      name  = "RebootWarningTimeout"
+      type  = "REG_DWORD"
+      value = var.reboot_warning_timeout_minutes == null || var.reboot_warning_timeout_minutes == "false" ? null : tostring(tonumber(var.reboot_warning_timeout_minutes))
+    }
+    reschedule_wait_time_minutes = {
+      path  = local.au_path
+      name  = "RescheduleWaitTime"
+      type  = "REG_DWORD"
+      value = var.reschedule_wait_time_minutes == null || var.reschedule_wait_time_minutes == "false" ? null : tostring(tonumber(var.reschedule_wait_time_minutes))
+    }
+    target_group = {
+      path  = local.wu_path
+      name  = "TargetGroup"
+      type  = "REG_SZ"
+      value = var.target_group == null || var.target_group == "false" ? null : var.target_group
+    }
+  }
+
+  pair_enabled = {
+    detection_frequency_hours = {
+      path  = local.au_path
+      name  = "DetectionFrequencyEnabled"
+      value = var.detection_frequency_hours == null ? null : (var.detection_frequency_hours == "false" ? "0" : "1")
+    }
+    reboot_relaunch_timeout_minutes = {
+      path  = local.au_path
+      name  = "RebootRelaunchTimeoutEnabled"
+      value = var.reboot_relaunch_timeout_minutes == null ? null : (var.reboot_relaunch_timeout_minutes == "false" ? "0" : "1")
+    }
+    reboot_warning_timeout_minutes = {
+      path  = local.au_path
+      name  = "RebootWarningTimeoutEnabled"
+      value = var.reboot_warning_timeout_minutes == null ? null : (var.reboot_warning_timeout_minutes == "false" ? "0" : "1")
+    }
+    reschedule_wait_time_minutes = {
+      path  = local.au_path
+      name  = "RescheduleWaitTimeEnabled"
+      value = var.reschedule_wait_time_minutes == null ? null : (var.reschedule_wait_time_minutes == "false" ? "0" : "1")
+    }
+    target_group = {
+      path  = local.wu_path
+      name  = "TargetGroupEnabled"
+      value = var.target_group == null ? null : (var.target_group == "false" ? "0" : "1")
+    }
+  }
 }
 
 # Core WSUS server resources (issue #6).
@@ -180,6 +246,31 @@ resource "windows_registry_value" "scheduled_install_hour" {
 # behaviour on a live host is still to be verified in #17.
 resource "windows_registry_value" "boolean_settings" {
   for_each = { for k, v in local.boolean_settings : k => v if v.value != null }
+
+  hive         = "HKLM"
+  path         = each.value.path
+  name         = each.value.name
+  type         = "REG_DWORD"
+  value_string = each.value.value
+}
+
+# Value/Enabled pairs (issue #9). null -> no resources (unmanaged);
+# "false" -> only the Enabled resource with "0"; value -> value resource
+# plus Enabled "1". Removing a managed value (var flipping back to null)
+# destroys it, i.e. the registry value is deleted. Actual delete behaviour
+# on a live host is still to be verified in #17.
+resource "windows_registry_value" "pair_values" {
+  for_each = { for k, v in local.pair_values : k => v if v.value != null }
+
+  hive         = "HKLM"
+  path         = each.value.path
+  name         = each.value.name
+  type         = each.value.type
+  value_string = each.value.value
+}
+
+resource "windows_registry_value" "pair_enabled" {
+  for_each = { for k, v in local.pair_enabled : k => v if v.value != null }
 
   hive         = "HKLM"
   path         = each.value.path
