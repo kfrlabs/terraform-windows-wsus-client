@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-Only the `main` branch is supported with security updates. This module is
-pre-`1.0`; pin a tagged version in production and follow release notes for
+Only the `main` branch and the latest `1.0.x` release are supported with security updates. Pin a tagged version in production and follow release notes for
 security-relevant changes.
 
 | Version | Supported |
 | ------- | --------- |
+| `1.0.x` (latest) | Yes |
 | `main` (latest) | Yes |
 | Older tags / forks | No |
 
