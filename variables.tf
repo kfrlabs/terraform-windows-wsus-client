@@ -57,3 +57,52 @@ variable "scheduled_install_hour" {
     error_message = "scheduled_install_hour must be an integer between 0 and 23."
   }
 }
+
+variable "accept_trusted_publisher_certs" {
+  description = "Accept trusted publisher certificates (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "auto_install_minor_updates" {
+  description = "Auto-install minor updates (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "disable_windows_update_access" {
+  description = "Disable Windows Update access (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "elevate_non_admins" {
+  description = "Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "no_auto_reboot_with_logged_on_users" {
+  description = "No auto-reboot with logged-on users (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "no_auto_update" {
+  description = "Disable automatic updates (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "always_auto_reboot_at_scheduled_time" {
+  description = "Always auto-reboot at scheduled time (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
