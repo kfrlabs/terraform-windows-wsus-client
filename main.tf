@@ -218,6 +218,24 @@ resource "windows_registry_value" "wu_status_server" {
   value_string = var.server_url
 }
 
+# Existing Windows Update service (issue #12). Import-only: apply without prior
+# 'terraform import windows_service.wuauserv[0] wuauserv' fails closed (service exists).
+# binary_path is provider-required + ForceNew but host-dependent; the placeholder is
+# ignore_changes-guarded so import keeps the live value and never proposes replacement.
+# status left null = observe-only (do not fight patching/GPO). Live behaviour (#17).
+resource "windows_service" "wuauserv" {
+  count = var.manage_wuauserv ? 1 : 0
+
+  name        = "wuauserv"
+  binary_path = "C:\\Windows\\System32\\svchost.exe -k netsvcs -p"
+  start_type  = "Automatic"
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [binary_path]
+  }
+}
+
 # AUOptions scheduling resources (issue #7).
 # AUOptions = 7 (NotifyRestart) requires Windows Server 2016 or later.
 # null -> unmanaged (count = 0, values left alone).

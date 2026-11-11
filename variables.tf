@@ -208,3 +208,12 @@ variable "active_hours_end" {
     error_message = "active_hours_end must be null, \"false\", or an integer string between 0 and 23."
   }
 }
+
+# Non-nullable explicit switch (issue #12): no null=unmanaged meaning.
+# No validation block needed (bool type enforces).
+variable "manage_wuauserv" {
+  description = "When true, manages the existing wuauserv service (start_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent_destroy; use 'terraform state rm' to stop managing."
+  type        = bool
+  nullable    = false
+  default     = true
+}
