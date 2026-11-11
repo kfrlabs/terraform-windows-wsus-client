@@ -71,6 +71,85 @@ run "server_url_false_disables" {
   }
 }
 
+run "status_server_override" {
+  command = plan
+
+  variables {
+    server_url           = "http://wsus.example.lan:8530"
+    enable_status_server = true
+    status_server_url    = "http://status.example.lan:8530"
+  }
+
+  assert {
+    condition     = output.status_server == "http://status.example.lan:8530"
+    error_message = "status_server output should follow status_server_url when set."
+  }
+}
+
+run "status_server_override_invalid_rejected" {
+  command = plan
+
+  variables {
+    server_url           = "http://wsus.example.lan:8530"
+    enable_status_server = true
+    status_server_url    = "not-a-url"
+  }
+
+  expect_failures = [
+    var.status_server_url,
+  ]
+}
+
+run "update_service_url_alternate" {
+  command = plan
+
+  variables {
+    update_service_url_alternate = "http://cdn.example.lan:8530"
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\UpdateServiceUrlAlternate")
+    error_message = "UpdateServiceUrlAlternate should be managed when set."
+  }
+}
+
+run "update_service_url_alternate_invalid_rejected" {
+  command = plan
+
+  variables {
+    update_service_url_alternate = "not-a-url"
+  }
+
+  expect_failures = [
+    var.update_service_url_alternate,
+  ]
+}
+
+run "modern_booleans" {
+  command = plan
+
+  variables {
+    disable_dual_scan                       = true
+    do_not_enforce_tls_cert_pinning         = false
+    set_proxy_behavior_for_update_detection = true
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\DisableDualScan")
+    error_message = "DisableDualScan should be managed when true."
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\DoNotEnforceEnterpriseTLSCertPinningForUpdateDetection")
+    error_message = "DoNotEnforceEnterpriseTLSCertPinningForUpdateDetection should be managed when false."
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\SetProxyBehaviorForUpdateDetection")
+    error_message = "SetProxyBehaviorForUpdateDetection should be managed when true."
+  }
+}
+
 run "status_server_requires_url" {
   command = plan
 

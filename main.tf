@@ -48,29 +48,39 @@ locals {
   # Exact lowercase "false" only (ADR-0001, case-sensitive).
   is_wus_url = var.server_url != null && var.server_url != "false"
 
+  # Effective status server URL: explicit override wins, otherwise follow
+  # server_url when it is a managed URL.
+  status_server_effective = var.status_server_url != null ? var.status_server_url : (local.is_wus_url ? var.server_url : null)
+
   # Simple booleans. null stays null (unmanaged);
   # true/false map to DWORD "1"/"0". WU root keys vs AU subkey per table.
   # Single input/metadata tables: boolean_settings, pair_values and
   # pair_enabled are derived below with one `for` each, so the key list and
   # the null/"false"/value semantics live in exactly one place per table.
   boolean_inputs = {
-    accept_trusted_publisher_certs       = var.accept_trusted_publisher_certs
-    disable_windows_update_access        = var.disable_windows_update_access
-    elevate_non_admins                   = var.elevate_non_admins
-    auto_install_minor_updates           = var.auto_install_minor_updates
-    no_auto_reboot_with_logged_on_users  = var.no_auto_reboot_with_logged_on_users
-    no_auto_update                       = var.no_auto_update
-    always_auto_reboot_at_scheduled_time = var.always_auto_reboot_at_scheduled_time
+    accept_trusted_publisher_certs          = var.accept_trusted_publisher_certs
+    disable_windows_update_access           = var.disable_windows_update_access
+    elevate_non_admins                      = var.elevate_non_admins
+    auto_install_minor_updates              = var.auto_install_minor_updates
+    no_auto_reboot_with_logged_on_users     = var.no_auto_reboot_with_logged_on_users
+    no_auto_update                          = var.no_auto_update
+    always_auto_reboot_at_scheduled_time    = var.always_auto_reboot_at_scheduled_time
+    disable_dual_scan                       = var.disable_dual_scan
+    do_not_enforce_tls_cert_pinning         = var.do_not_enforce_tls_cert_pinning
+    set_proxy_behavior_for_update_detection = var.set_proxy_behavior_for_update_detection
   }
 
   boolean_meta = {
-    accept_trusted_publisher_certs       = { path = local.wu_path, name = "AcceptTrustedPublisherCerts" }
-    disable_windows_update_access        = { path = local.wu_path, name = "DisableWindowsUpdateAccess" }
-    elevate_non_admins                   = { path = local.wu_path, name = "ElevateNonAdmins" }
-    auto_install_minor_updates           = { path = local.au_path, name = "AutoInstallMinorUpdates" }
-    no_auto_reboot_with_logged_on_users  = { path = local.au_path, name = "NoAutoRebootWithLoggedOnUsers" }
-    no_auto_update                       = { path = local.au_path, name = "NoAutoUpdate" }
-    always_auto_reboot_at_scheduled_time = { path = local.au_path, name = "AlwaysAutoRebootAtScheduledTime" }
+    accept_trusted_publisher_certs          = { path = local.wu_path, name = "AcceptTrustedPublisherCerts" }
+    disable_windows_update_access           = { path = local.wu_path, name = "DisableWindowsUpdateAccess" }
+    elevate_non_admins                      = { path = local.wu_path, name = "ElevateNonAdmins" }
+    auto_install_minor_updates              = { path = local.au_path, name = "AutoInstallMinorUpdates" }
+    no_auto_reboot_with_logged_on_users     = { path = local.au_path, name = "NoAutoRebootWithLoggedOnUsers" }
+    no_auto_update                          = { path = local.au_path, name = "NoAutoUpdate" }
+    always_auto_reboot_at_scheduled_time    = { path = local.au_path, name = "AlwaysAutoRebootAtScheduledTime" }
+    disable_dual_scan                       = { path = local.wu_path, name = "DisableDualScan" }
+    do_not_enforce_tls_cert_pinning         = { path = local.wu_path, name = "DoNotEnforceEnterpriseTLSCertPinningForUpdateDetection" }
+    set_proxy_behavior_for_update_detection = { path = local.wu_path, name = "SetProxyBehaviorForUpdateDetection" }
   }
 
   boolean_settings = { for k, raw in local.boolean_inputs : k => {
@@ -158,9 +168,10 @@ resource "windows_registry_value" "wu_server" {
   value_string = var.server_url
 }
 
-# enable_status_server = true  -> WUStatusServer follows server_url.
-# enable_status_server = false -> value absent (count = 0, deleted if present).
-# enable_status_server = null  -> unmanaged (count = 0).
+# enable_status_server = true  -> WUStatusServer follows status_server_url
+# when set, else server_url. enable_status_server = false -> value absent
+# (count = 0, deleted if present). enable_status_server = null -> unmanaged
+# (count = 0).
 # The true-without-server_url combination is rejected by the
 # enable_status_server variable validation; no precondition here.
 resource "windows_registry_value" "wu_status_server" {
@@ -170,7 +181,19 @@ resource "windows_registry_value" "wu_status_server" {
   path         = local.wu_path
   name         = "WUStatusServer"
   type         = "REG_SZ"
-  value_string = var.server_url
+  value_string = local.status_server_effective
+}
+
+# Alternate download server (UpdateServiceUrlAlternate REG_SZ at the WU
+# root). null -> unmanaged (count = 0, value left alone); URL -> managed.
+resource "windows_registry_value" "update_service_url_alternate" {
+  count = var.update_service_url_alternate != null ? 1 : 0
+
+  hive         = "HKLM"
+  path         = local.wu_path
+  name         = "UpdateServiceUrlAlternate"
+  type         = "REG_SZ"
+  value_string = var.update_service_url_alternate
 }
 
 # Existing Windows Update service (issue #12). Import-only: only start_type is managed;
