@@ -49,6 +49,46 @@ locals {
   # Exact lowercase "false" only (ADR-0001, case-sensitive).
   is_wus_disabled = var.server_url == "false"
   is_wus_url      = var.server_url != null && var.server_url != "false"
+
+  # Simple booleans (issue #8, PLAN.md §2). null stays null (unmanaged);
+  # true/false map to DWORD "1"/"0". WU root keys vs AU subkey per table.
+  boolean_settings = {
+    accept_trusted_publisher_certs = {
+      path  = local.wu_path
+      name  = "AcceptTrustedPublisherCerts"
+      value = var.accept_trusted_publisher_certs == null ? null : (var.accept_trusted_publisher_certs ? "1" : "0")
+    }
+    disable_windows_update_access = {
+      path  = local.wu_path
+      name  = "DisableWindowsUpdateAccess"
+      value = var.disable_windows_update_access == null ? null : (var.disable_windows_update_access ? "1" : "0")
+    }
+    elevate_non_admins = {
+      path  = local.wu_path
+      name  = "ElevateNonAdmins"
+      value = var.elevate_non_admins == null ? null : (var.elevate_non_admins ? "1" : "0")
+    }
+    auto_install_minor_updates = {
+      path  = local.au_path
+      name  = "AutoInstallMinorUpdates"
+      value = var.auto_install_minor_updates == null ? null : (var.auto_install_minor_updates ? "1" : "0")
+    }
+    no_auto_reboot_with_logged_on_users = {
+      path  = local.au_path
+      name  = "NoAutoRebootWithLoggedOnUsers"
+      value = var.no_auto_reboot_with_logged_on_users == null ? null : (var.no_auto_reboot_with_logged_on_users ? "1" : "0")
+    }
+    no_auto_update = {
+      path  = local.au_path
+      name  = "NoAutoUpdate"
+      value = var.no_auto_update == null ? null : (var.no_auto_update ? "1" : "0")
+    }
+    always_auto_reboot_at_scheduled_time = {
+      path  = local.au_path
+      name  = "AlwaysAutoRebootAtScheduledTime"
+      value = var.always_auto_reboot_at_scheduled_time == null ? null : (var.always_auto_reboot_at_scheduled_time ? "1" : "0")
+    }
+  }
 }
 
 # Core WSUS server resources (issue #6).
@@ -133,3 +173,17 @@ resource "windows_registry_value" "scheduled_install_hour" {
 # NOTE: cross-variable lifecycle preconditions (enable_status_server
 # requiring a server_url URL, Scheduled requiring day + hour) will be
 # enforced here in issue #11. Placeholder only — no preconditions yet.
+
+# Simple booleans (issue #8). One resource per non-null entry; null entries
+# are filtered out (unmanaged). Removing a managed value (var flipping back
+# to null) destroys it, i.e. the registry value is deleted. Actual delete
+# behaviour on a live host is still to be verified in #17.
+resource "windows_registry_value" "boolean_settings" {
+  for_each = { for k, v in local.boolean_settings : k => v if v.value != null }
+
+  hive         = "HKLM"
+  path         = each.value.path
+  name         = each.value.name
+  type         = "REG_DWORD"
+  value_string = each.value.value
+}
