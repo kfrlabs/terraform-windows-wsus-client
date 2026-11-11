@@ -40,7 +40,7 @@ variable "status_server_url" {
 }
 
 variable "update_service_url_alternate" {
-  description = "Alternate download server (UpdateServiceUrlAlternate REG_SZ at the WU root). null leaves it unmanaged."
+  description = "Alternate download server (UpdateServiceUrlAlternate REG_SZ at the WU root). null leaves it unmanaged. Requires server_url to be a URL (downloads replace the intranet update service)."
   type        = string
   nullable    = true
   default     = null
@@ -48,6 +48,11 @@ variable "update_service_url_alternate" {
   validation {
     condition     = var.update_service_url_alternate == null || can(regex("^https?://([[][^]\\s/]+[]]|[^\\]\\s/:[]+)(:[0-9]{1,5})?(/\\S*)?$", var.update_service_url_alternate))
     error_message = "update_service_url_alternate must be null or a valid http(s) URL (scheme, host, optional port and path, no spaces)."
+  }
+
+  validation {
+    condition     = var.update_service_url_alternate == null || (var.server_url != null && var.server_url != "false" && can(regex("^https?://([[][^]\\s/]+[]]|[^\\]\\s/:[]+)(:[0-9]{1,5})?(/\\S*)?$", var.server_url)))
+    error_message = "update_service_url_alternate has no effect unless server_url is a URL (the alternate replaces the intranet update service)."
   }
 }
 

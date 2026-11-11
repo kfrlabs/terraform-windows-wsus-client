@@ -64,7 +64,7 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_set_proxy_behavior_for_update_detection"></a> [set\_proxy\_behavior\_for\_update\_detection](#input\_set\_proxy\_behavior\_for\_update\_detection) | Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_status_server_url"></a> [status\_server\_url](#input\_status\_server\_url) | Optional WUStatusServer override (http(s)://...). null follows server\_url. Only used when enable\_status\_server is true. | `string` | `null` | no |
 | <a name="input_target_group"></a> [target\_group](#input\_target\_group) | Target group name (TargetGroup). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_update_service_url_alternate"></a> [update\_service\_url\_alternate](#input\_update\_service\_url\_alternate) | Alternate download server (UpdateServiceUrlAlternate REG\_SZ at the WU root). null leaves it unmanaged. | `string` | `null` | no |
+| <a name="input_update_service_url_alternate"></a> [update\_service\_url\_alternate](#input\_update\_service\_url\_alternate) | Alternate download server (UpdateServiceUrlAlternate REG\_SZ at the WU root). null leaves it unmanaged. Requires server\_url to be a URL (downloads replace the intranet update service). | `string` | `null` | no |
 
 ## Outputs
 
@@ -114,7 +114,7 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 | `server_url` | `AU\UseWUServer` DWORD, `WUServer` REG_SZ (WU root) | `server_url` (string) | `null` unmanaged; `"false"` → `UseWUServer = "0"` only; URL → `"1"` + `WUServer = url` |
 | `enable_status_server` | `WUStatusServer` REG_SZ (WU root) | `enable_status_server` (bool) | `null` unmanaged; `false` absent; `true` → `= status_server_url` if set, else `= server_url` (requires `server_url` URL) |
 | `status_server_url` | `WUStatusServer` REG_SZ (WU root) | `status_server_url` (string) | `null` → follows `server_url`; URL → that value (only used when `enable_status_server = true`) |
-| `update_service_url_alternate` | `UpdateServiceUrlAlternate` REG_SZ (WU root) | string | `null` unmanaged; URL → managed (alternate download server) |
+| `update_service_url_alternate` | `UpdateServiceUrlAlternate` REG_SZ (WU root) | string | `null` unmanaged; URL → managed (alternate download server, requires `server_url` URL) |
 | `auto_update_option` | `AU\AUOptions` DWORD | `auto_update_option` (string) | `NotifyOnly`/`2`, `AutoNotify`/`3`, `Scheduled`/`4`, `AutoInstall`/`5`, `NotifyRestart`/`7` (`7` = Server 2016+). `Scheduled` requires day + hour |
 | `scheduled_install_day` | `AU\ScheduledInstallDay` DWORD | `scheduled_install_day` (string) | `Everyday`/`0` … `Saturday`/`7` |
 | `scheduled_install_hour` | `AU\ScheduledInstallTime` DWORD | `scheduled_install_hour` (number) | `0-23`. No `"false"` meaning (plain `number`) |
