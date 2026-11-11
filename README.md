@@ -53,9 +53,9 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_auto_update_option"></a> [auto\_update\_option](#input\_auto\_update\_option) | AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+). null leaves it unmanaged. | `string` | `null` | no |
 | <a name="input_detection_frequency_hours"></a> [detection\_frequency\_hours](#input\_detection\_frequency\_hours) | Detection frequency in hours, 1-22 (DetectionFrequency). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
 | <a name="input_disable_dual_scan"></a> [disable\_dual\_scan](#input\_disable\_dual\_scan) | Do not allow update deferral policies to cause scans against Windows Update (DisableDualScan DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_disable_windows_update_access"></a> [disable\_windows\_update\_access](#input\_disable\_windows\_update\_access) | Disable Windows Update access (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_do_not_enforce_tls_cert_pinning"></a> [do\_not\_enforce\_tls\_cert\_pinning](#input\_do\_not\_enforce\_tls\_cert\_pinning) | Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_elevate_non_admins"></a> [elevate\_non\_admins](#input\_elevate\_non\_admins) | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| <a name="input_disable_windows_update_access"></a> [disable\_windows\_update\_access](#input\_disable\_windows\_update\_access) | Disable Windows Update access (DWORD 0/1). null unmanaged. Note: true blocks user-initiated update scans; clients depend solely on policy-driven updates. | `bool` | `null` | no |
+| <a name="input_do_not_enforce_tls_cert_pinning"></a> [do\_not\_enforce\_tls\_cert\_pinning](#input\_do\_not\_enforce\_tls\_cert\_pinning) | Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged. WARNING: true weakens update-channel security; set only when required. | `bool` | `null` | no |
+| <a name="input_elevate_non_admins"></a> [elevate\_non\_admins](#input\_elevate\_non\_admins) | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. Note: true widens who can interact with update notifications. | `bool` | `null` | no |
 | <a name="input_enable_status_server"></a> [enable\_status\_server](#input\_enable\_status\_server) | When true, WUStatusServer follows server\_url (or status\_server\_url when set). false and null leave it unmanaged (a previously managed value is deleted; use purge\_unknown\_wu\_values for unmanaged values). | `bool` | `null` | no |
 | <a name="input_manage_wuauserv"></a> [manage\_wuauserv](#input\_manage\_wuauserv) | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `false` | no |
 | <a name="input_no_auto_reboot_with_logged_on_users"></a> [no\_auto\_reboot\_with\_logged\_on\_users](#input\_no\_auto\_reboot\_with\_logged\_on\_users) | No auto-reboot with logged-on users (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
@@ -67,11 +67,11 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_reschedule_wait_time_minutes"></a> [reschedule\_wait\_time\_minutes](#input\_reschedule\_wait\_time\_minutes) | Reschedule wait time in minutes, 1-60 (RescheduleWaitTime). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
 | <a name="input_scheduled_install_day"></a> [scheduled\_install\_day](#input\_scheduled\_install\_day) | Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7. null leaves it unmanaged. | `string` | `null` | no |
 | <a name="input_scheduled_install_hour"></a> [scheduled\_install\_hour](#input\_scheduled\_install\_hour) | Scheduled install hour, 0-23 (maps to ScheduledInstallTime). null leaves it unmanaged. | `number` | `null` | no |
-| <a name="input_server_url"></a> [server\_url](#input\_server\_url) | WSUS server URL (http(s)://...). "false" disables UseWUServer. null leaves settings unmanaged. | `string` | `null` | no |
-| <a name="input_set_proxy_behavior_for_update_detection"></a> [set\_proxy\_behavior\_for\_update\_detection](#input\_set\_proxy\_behavior\_for\_update\_detection) | Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_status_server_url"></a> [status\_server\_url](#input\_status\_server\_url) | Optional WUStatusServer override (http(s)://...). null follows server\_url. Only used when enable\_status\_server is true. | `string` | `null` | no |
+| <a name="input_server_url"></a> [server\_url](#input\_server\_url) | WSUS server URL (http(s)://...). "false" disables UseWUServer. null leaves settings unmanaged. Prefer https (default port 8531): plain http allows update interception on the wire. | `string` | `null` | no |
+| <a name="input_set_proxy_behavior_for_update_detection"></a> [set\_proxy\_behavior\_for\_update\_detection](#input\_set\_proxy\_behavior\_for\_update\_detection) | Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged. WARNING: true lets a user-controlled proxy intercept update traffic. | `bool` | `null` | no |
+| <a name="input_status_server_url"></a> [status\_server\_url](#input\_status\_server\_url) | Optional WUStatusServer override (http(s)://...). null follows server\_url. Only used when enable\_status\_server is true. Prefer https: plain http allows update interception on the wire. | `string` | `null` | no |
 | <a name="input_target_group"></a> [target\_group](#input\_target\_group) | Target group name (TargetGroup). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_update_service_url_alternate"></a> [update\_service\_url\_alternate](#input\_update\_service\_url\_alternate) | Alternate download server (UpdateServiceUrlAlternate REG\_SZ at the WU root). null leaves it unmanaged. Requires server\_url to be a URL (downloads replace the intranet update service). | `string` | `null` | no |
+| <a name="input_update_service_url_alternate"></a> [update\_service\_url\_alternate](#input\_update\_service\_url\_alternate) | Alternate download server (UpdateServiceUrlAlternate REG\_SZ at the WU root). null leaves it unmanaged. Requires server\_url to be a URL (downloads replace the intranet update service). Prefer https: plain http allows update interception on the wire. | `string` | `null` | no |
 
 ## Outputs
 
@@ -95,7 +95,7 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 module "wsus_client" {
   source     = "kfrlabs/wsus-client/windows"
   version    = "~> 1.0"
-  server_url = "http://wsus.example.lan:8530"
+  server_url = "https://wsus.example.lan:8531"
 }
 ```
 
@@ -150,6 +150,16 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 - **Opt-in key purge (experimental: live-host purge acceptance pending, see `docs/acceptance-test.md`).** `purge_unknown_wu_values` / `purge_unknown_au_values` (default `false`, strictly unchanged default behaviour) purge unmanaged values under the WU root / AU subkey via `windows_registry_key` (provider `>= 0.4.0`). Keys are never deleted (`delete_key_on_destroy = false`). Enabling purge on a key with no managed values under it deletes all values under that key. Plan previews via `wu_unknown_value_names` / `au_unknown_value_names` outputs. Import when enabling on existing keys: `terraform import 'module.wsus.windows_registry_key.wu[0]' 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'` and `terraform import 'module.wsus.windows_registry_key.au[0]' 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'`. Do not enable purge on keys managed by Group Policy.
 - **`AUOptions = 7` (`NotifyRestart`) requires Windows Server 2016 or later.**
 - **`"false"` literal edge.** `target_group = "false"` means disabled (`TargetGroupEnabled = "0"`), so a group literally named `false` cannot be managed. Case variants (`"False"`, `"FALSE"`, ...) are rejected by validation. Same exact-lowercase rule applies to every `"false"` sentinel.
+
+## Security considerations
+
+- **Prefer HTTPS for WSUS URLs.** `server_url`, `status_server_url` and `update_service_url_alternate` accept plain `http://` for legacy servers, but HTTP allows interception and injection of fake updates on the wire (WSUS MITM). Use `https://<host>:8531` (all examples do). HTTP is accepted, never required.
+- **Do not weaken the update channel unintentionally.**
+  - `do_not_enforce_tls_cert_pinning = true` disables TLS certificate pinning for update detection.
+  - `set_proxy_behavior_for_update_detection = true` allows fallback to a user-controlled proxy for update traffic.
+  - `elevate_non_admins = true` widens who can interact with update notifications.
+  - Prefer the `null` (unmanaged) defaults unless the setting is explicitly required.
+- **Availability tradeoff.** `disable_windows_update_access = true` blocks user-initiated scans; clients then depend solely on policy-driven updates.
 
 ## Importing wuauserv
 

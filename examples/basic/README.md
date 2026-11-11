@@ -28,6 +28,6 @@ terraform import 'module.wsus_client.windows_service.wuauserv[0]' wuauserv
 # module "wsus_client" {
 #   source     = "kfrlabs/wsus-client/windows"
 #   version    = "~> 1.0"
-#   server_url = "http://wsus.example.lan:8530"
+#   server_url = "https://wsus.example.lan:8531"
 # }
 ```

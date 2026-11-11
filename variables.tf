@@ -1,5 +1,5 @@
 variable "server_url" {
-  description = "WSUS server URL (http(s)://...). \"false\" disables UseWUServer. null leaves settings unmanaged."
+  description = "WSUS server URL (http(s)://...). \"false\" disables UseWUServer. null leaves settings unmanaged. Prefer https (default port 8531): plain http allows update interception on the wire."
   type        = string
   nullable    = true
   default     = null
@@ -23,7 +23,7 @@ variable "enable_status_server" {
 }
 
 variable "status_server_url" {
-  description = "Optional WUStatusServer override (http(s)://...). null follows server_url. Only used when enable_status_server is true."
+  description = "Optional WUStatusServer override (http(s)://...). null follows server_url. Only used when enable_status_server is true. Prefer https: plain http allows update interception on the wire."
   type        = string
   nullable    = true
   default     = null
@@ -40,7 +40,7 @@ variable "status_server_url" {
 }
 
 variable "update_service_url_alternate" {
-  description = "Alternate download server (UpdateServiceUrlAlternate REG_SZ at the WU root). null leaves it unmanaged. Requires server_url to be a URL (downloads replace the intranet update service)."
+  description = "Alternate download server (UpdateServiceUrlAlternate REG_SZ at the WU root). null leaves it unmanaged. Requires server_url to be a URL (downloads replace the intranet update service). Prefer https: plain http allows update interception on the wire."
   type        = string
   nullable    = true
   default     = null
@@ -117,14 +117,14 @@ variable "auto_install_minor_updates" {
 }
 
 variable "disable_windows_update_access" {
-  description = "Disable Windows Update access (DWORD 0/1). null unmanaged."
+  description = "Disable Windows Update access (DWORD 0/1). null unmanaged. Note: true blocks user-initiated update scans; clients depend solely on policy-driven updates."
   type        = bool
   nullable    = true
   default     = null
 }
 
 variable "elevate_non_admins" {
-  description = "Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged."
+  description = "Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. Note: true widens who can interact with update notifications."
   type        = bool
   nullable    = true
   default     = null
@@ -159,14 +159,14 @@ variable "disable_dual_scan" {
 }
 
 variable "do_not_enforce_tls_cert_pinning" {
-  description = "Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged."
+  description = "Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged. WARNING: true weakens update-channel security; set only when required."
   type        = bool
   nullable    = true
   default     = null
 }
 
 variable "set_proxy_behavior_for_update_detection" {
-  description = "Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged."
+  description = "Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged. WARNING: true lets a user-controlled proxy intercept update traffic."
   type        = bool
   nullable    = true
   default     = null
