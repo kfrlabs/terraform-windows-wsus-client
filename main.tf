@@ -139,6 +139,30 @@ locals {
   active_hours_set_value    = local.active_hours_both_false ? "0" : "1"
   active_hours_start_value  = local.active_hours_both_numeric ? tostring(tonumber(var.active_hours_start)) : null
   active_hours_end_value    = local.active_hours_both_numeric ? tostring(tonumber(var.active_hours_end)) : null
+
+  # Purge exclusion lists (issue #65). Conditions mirror the value resource
+  # count/for_each conditions above exactly.
+  wu_managed_value_names = sort(concat(
+    local.is_wus_url ? ["WUServer"] : [],
+    var.enable_status_server == true ? ["WUStatusServer"] : [],
+    var.update_service_url_alternate != null ? ["UpdateServiceUrlAlternate"] : [],
+    [for k, v in local.boolean_settings : v.name if v.value != null && v.path == local.wu_path],
+    [for k, v in local.pair_values : v.name if v.value != null && v.path == local.wu_path],
+    [for k, v in local.pair_enabled : v.name if v.value != null && v.path == local.wu_path],
+    (local.active_hours_both_false || local.active_hours_both_numeric) ? ["SetActiveHours"] : [],
+    local.active_hours_both_numeric ? ["ActiveHoursStart", "ActiveHoursEnd"] : [],
+  ))
+
+  au_managed_value_names = sort(concat(
+    var.server_url != null ? ["UseWUServer"] : [],
+    var.auto_update_option != null ? ["AUOptions"] : [],
+    var.scheduled_install_day != null ? ["ScheduledInstallDay"] : [],
+    var.scheduled_install_hour != null ? ["ScheduledInstallTime"] : [],
+    [for k, v in local.boolean_settings : v.name if v.value != null && v.path == local.au_path],
+    [for k, v in local.pair_values : v.name if v.value != null && v.path == local.au_path],
+    [for k, v in local.pair_enabled : v.name if v.value != null && v.path == local.au_path],
+    local.reboot_minutes_value != null ? ["AlwaysAutoRebootAtScheduledTimeMinutes"] : [],
+  ))
 }
 
 # Core WSUS server resources (issue #6).
@@ -367,4 +391,35 @@ resource "windows_registry_value" "active_hours_end" {
   name         = "ActiveHoursEnd"
   type         = "REG_DWORD"
   value_string = local.active_hours_end_value
+}
+
+# Opt-in purge of unknown registry values (issue #65, provider >= 0.4.0).
+# Count-gated so purge=false (default) creates no resources: existing configs
+# plan empty. Managed lists above derive from the same conditions as the
+# value resources. The key resources are ordered after all value resources
+# (provider last-write-wins). Keys are never deleted (explicit
+# delete_key_on_destroy = false below). Do not use on keys managed by Group
+# Policy: Terraform and GPO will fight.
+resource "windows_registry_key" "wu" {
+  count = var.purge_unknown_wu_values ? 1 : 0
+
+  hive                  = "HKLM"
+  path                  = local.wu_path
+  purge_unknown_values  = true
+  managed_value_names   = local.wu_managed_value_names
+  delete_key_on_destroy = false
+
+  depends_on = [windows_registry_value.wu_server, windows_registry_value.wu_status_server, windows_registry_value.update_service_url_alternate, windows_registry_value.boolean_settings, windows_registry_value.pair_values, windows_registry_value.pair_enabled, windows_registry_value.set_active_hours, windows_registry_value.active_hours_start, windows_registry_value.active_hours_end]
+}
+
+resource "windows_registry_key" "au" {
+  count = var.purge_unknown_au_values ? 1 : 0
+
+  hive                  = "HKLM"
+  path                  = local.au_path
+  purge_unknown_values  = true
+  managed_value_names   = local.au_managed_value_names
+  delete_key_on_destroy = false
+
+  depends_on = [windows_registry_value.use_wu_server, windows_registry_value.au_options, windows_registry_value.scheduled_install_day, windows_registry_value.scheduled_install_hour, windows_registry_value.boolean_settings, windows_registry_value.pair_values, windows_registry_value.pair_enabled, windows_registry_value.always_auto_reboot_minutes]
 }
