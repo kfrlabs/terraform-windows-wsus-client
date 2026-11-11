@@ -154,18 +154,15 @@ locals {
     }
   }
 
-  # Reboot/active-hours. Nullable strings with the
-  # "false" sentinel (ADR-0001, exact lowercase "false" only).
-  # Minutes has no Enabled companion: null or "false" -> no resource
-  # (unmanaged equivalent, no key); numeric 15-180 -> 1 DWORD resource.
-  # tonumber() runs only after null/"false" have been excluded (ADR-0001).
-  reboot_minutes_value = var.always_auto_reboot_at_scheduled_time_minutes == null || var.always_auto_reboot_at_scheduled_time_minutes == "false" ? null : tostring(tonumber(var.always_auto_reboot_at_scheduled_time_minutes))
+  # Reboot minutes has no Enabled companion: null -> no resource
+  # (unmanaged, no key); numeric 15-180 -> 1 DWORD resource.
+  # Plain number (no "false" sentinel, like scheduled_install_hour).
+  reboot_minutes_value = var.always_auto_reboot_at_scheduled_time_minutes == null ? null : tostring(var.always_auto_reboot_at_scheduled_time_minutes)
 
   # Active Hours joint state (2 inputs -> 3 resources): both null -> 0
   # resources; both "false" -> SetActiveHours "0" only; both numeric 0-23
   # -> SetActiveHours "1" + Start + End. Any mixed or single-set combination
-  # is invalid (rejected by the lifecycle preconditions below, since variable
-  # validation cannot cross-reference).
+  # is invalid (rejected by the active_hours_end variable validation).
   active_hours_both_false   = var.active_hours_start == "false" && var.active_hours_end == "false"
   active_hours_both_numeric = var.active_hours_start != null && var.active_hours_start != "false" && var.active_hours_end != null && var.active_hours_end != "false"
   active_hours_set_value    = local.active_hours_both_false ? "0" : "1"
