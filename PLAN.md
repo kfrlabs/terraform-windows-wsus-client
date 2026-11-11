@@ -86,9 +86,20 @@ Toutes `default = null` sauf `manage_wuauserv` (`true`) :
 - `auto_update_option : string` — `NotifyOnly|AutoNotify|Scheduled|AutoInstall|NotifyRestart|2|3|4|5|7`
 - `scheduled_install_day : string` — `Everyday|Sunday|...|Saturday|0-7`
 - `scheduled_install_hour : number` — `0-23`
-- `detection_frequency_hours : any(number|bool)` — `1-22` ou `false` → préf. `number` nullable + var booléenne séparée si le typage `any` gêne la Registry ; à trancher à l'implémentation (option simple : `string`, `"false"` = désactivé).
-- idem `reboot_relaunch_timeout_minutes`, `reboot_warning_timeout_minutes`, `reschedule_wait_time_minutes`, `always_auto_reboot_at_scheduled_time_minutes`, `active_hours_start/end`, `target_group` (string ou `"false"`).
-- bools simples : `accept_trusted_publisher_certs`, `auto_install_minor_updates`, `disable_windows_update_access`, `elevate_non_admins`, `no_auto_reboot_with_logged_on_users`, `no_auto_update`, `always_auto_reboot_at_scheduled_time`.
+- Décision (issue #3, voir `docs/adr-0001-typing.md`) : option 1 retenue — `string` nullable avec `"false"` = désactivé pour tous les paramètres valeur-ou-false : `server_url`, `detection_frequency_hours` (`1-22`), `reboot_relaunch_timeout_minutes` (`1-1440`), `reboot_warning_timeout_minutes` (`1-30`), `reschedule_wait_time_minutes` (`1-60`), `always_auto_reboot_at_scheduled_time_minutes` (`15-180`), `active_hours_start`/`active_hours_end` (`0-23`), `target_group` (nom de groupe).
+- Les 7 booléens simples restent `bool` nullable : `accept_trusted_publisher_certs`, `auto_install_minor_updates`, `disable_windows_update_access`, `elevate_non_admins`, `no_auto_reboot_with_logged_on_users`, `no_auto_update`, `always_auto_reboot_at_scheduled_time`.
+- Exception : `scheduled_install_hour` reste `number` (`0-23`) — aucun sens de `false` côté Puppet/registre pour cette clé.
+- Sémantique (paires `Valeur`/`Enabled`, voir §2) :
+
+| Entrée | Effet |
+|---|---|
+| `null` (défaut) | non géré — aucune ressource (équivalent Puppet `undef`) |
+| `"false"` (minuscule exacte, sensible à la casse) | `<Key>Enabled = "0"` seul, ressource valeur absente (`count = 0`) |
+| valeur | `<Key> = valeur` + `<Key>Enabled = "1"` |
+
+  Cas limite `target_group = "false"` : interprété comme désactivation (`TargetGroupEnabled = "0"`), donc le nom de groupe littéral `"false"` est impossible — limite documentée, héritée de Puppet (`false` booléen). `"False"` (majuscule) créerait un groupe de ce nom au lieu de désactiver ; #11/#4 à faire respecter ou normaliser.
+  Paire `active_hours_start`/`active_hours_end` : les deux `null`, les deux `"false"`, ou les deux numériques ; tout mélange `"false"`/numérique est rejeté par la validation #11.
+- Conséquences : #5 mappe via `tonumber()` après exclusion de `"false"`/`null` ; #11 vérifie les préconditions sur la forme `string` (`"Scheduled"`/`"4"`, paire `active_hours_start`/`active_hours_end`, `enable_status_server` ⇒ `server_url` URL) ; traçabilité alignée, référencé par #4, #8, #9, #10.
 - `manage_wuauserv : bool = true` — gère `windows_service.wuauserv` (import requis, voir §6).
 
 Validations `validation {}` :
