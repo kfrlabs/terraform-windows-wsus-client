@@ -104,6 +104,7 @@ Worked examples live in [`examples/basic`](examples/basic) (server URL only),
 and [`examples/active-hours`](examples/active-hours) (plus Active Hours).
 Note the examples use `source = "../.."` for local development; replace with
 the Registry source above when consuming the published module.
+See [CHANGELOG.md](CHANGELOG.md) for release notes and breaking changes.
 
 ## Registry mapping
 
