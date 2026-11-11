@@ -204,8 +204,8 @@ resource "windows_registry_value" "wu_server" {
 # enable_status_server = true  -> WUStatusServer follows server_url.
 # enable_status_server = false -> value absent (count = 0, deleted if present).
 # enable_status_server = null  -> unmanaged (count = 0).
-# The true-without-server_url combination is rejected by
-# terraform_data.cross_variable_validations below; no precondition here.
+# The true-without-server_url combination is rejected by the
+# enable_status_server variable validation; no precondition here.
 resource "windows_registry_value" "wu_status_server" {
   count = var.enable_status_server == true ? 1 : 0
 
@@ -247,8 +247,8 @@ resource "windows_service" "wuauserv" {
 # Removing a managed value (count flipping to 0) destroys it, i.e. the
 # registry value is deleted (delete behaviour verified on a live host
 # in #17). Scheduled mode additionally requires day +
-# hour; that cross-variable rule is enforced by
-# terraform_data.cross_variable_validations below.
+# hour; that cross-variable rule is enforced by the auto_update_option
+# variable validation.
 resource "windows_registry_value" "au_options" {
   count = var.auto_update_option != null ? 1 : 0
 
@@ -279,26 +279,23 @@ resource "windows_registry_value" "scheduled_install_hour" {
   value_string = tostring(local.scheduled_hour_effective)
 }
 
-# Cross-variable validations (issue #11). Uncounted guard so the
-# preconditions always evaluate (preconditions on count=0 resources are
-# skipped). Kept separate from terraform_data.active_hours_pair to keep the
-# Active Hours guard focused.
-resource "terraform_data" "cross_variable_validations" {
+# Cross-variable validations now live in variables.tf validation blocks
+# (supported since Terraform 1.9; the module requires >= 1.11), so errors
+# surface at input validation time and no guard resources pollute the state.
+# The removed blocks below drop the legacy guards from existing states.
+removed {
+  from = terraform_data.cross_variable_validations
+
   lifecycle {
-    precondition {
-      condition     = var.enable_status_server != true || (var.server_url != null && var.server_url != "false" && can(regex("^https?://", var.server_url)))
-      error_message = "enable_status_server requires server_url to be a valid http(s) URL (server_url must not be null or \"false\" when enable_status_server is true)."
-    }
+    destroy = false
+  }
+}
 
-    precondition {
-      condition     = !(var.auto_update_option == "Scheduled" || var.auto_update_option == "4") || (var.scheduled_install_day != null && var.scheduled_install_hour != null)
-      error_message = "auto_update_option \"Scheduled\"/\"4\" requires both scheduled_install_day and scheduled_install_hour to be set."
-    }
+removed {
+  from = terraform_data.active_hours_pair
 
-    precondition {
-      condition     = (var.reschedule_wait_time_minutes == null) || (var.auto_update_option == "Scheduled" || var.auto_update_option == "4")
-      error_message = "reschedule_wait_time_minutes (including \"false\") requires auto_update_option to be \"Scheduled\"/\"4\"."
-    }
+  lifecycle {
+    destroy = false
   }
 }
 
@@ -358,10 +355,10 @@ resource "windows_registry_value" "always_auto_reboot_minutes" {
 # Active Hours (issue #10). Both null -> 0 resources; both "false" ->
 # SetActiveHours "0" only; both numeric 0-23 -> all 3 resources. Mixed
 # false/numeric or single-set combinations are rejected by the
-# preconditions below (see the pairing guard at the end of this file).
-# SetActiveHours/ActiveHoursStart/ActiveHoursEnd live at the WindowsUpdate
-# root key, not in the AU subkey. Removing a managed value destroys it,
-# i.e. the registry value is deleted.
+# active_hours_end variable validation. Per Microsoft docs (configure
+# active hours via the registry), SetActiveHours/ActiveHoursStart/ActiveHoursEnd
+# live at the WindowsUpdate root key, not in the AU subkey. Removing a
+# managed value destroys it, i.e. the registry value is deleted.
 resource "windows_registry_value" "set_active_hours" {
   count = local.active_hours_both_false || local.active_hours_both_numeric ? 1 : 0
 
@@ -390,17 +387,4 @@ resource "windows_registry_value" "active_hours_end" {
   name         = "ActiveHoursEnd"
   type         = "REG_DWORD"
   value_string = local.active_hours_end_value
-}
-
-# Always-evaluated pairing guard (issue #10 AC1). The per-resource
-# preconditions above live on counted resources, so they are skipped when
-# count = 0 — exactly the invalid single-set/mixed states. This
-# uncounted resource always evaluates, rejecting those states.
-resource "terraform_data" "active_hours_pair" {
-  lifecycle {
-    precondition {
-      condition     = local.active_hours_both_null || local.active_hours_both_false || local.active_hours_both_numeric
-      error_message = "active_hours_start and active_hours_end must both be null, both be \"false\", or both be integer strings between 0 and 23."
-    }
-  }
 }

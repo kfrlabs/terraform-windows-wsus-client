@@ -11,20 +11,18 @@ variable "server_url" {
 }
 
 variable "enable_status_server" {
-  # Cross-variable rule (enforced by
-  # terraform_data.cross_variable_validations in main.tf):
-  # true requires server_url to be a valid URL. Terraform variable validation
-  # cannot reference other variables.
   description = "When true, WUStatusServer follows server_url. null leaves it unmanaged."
   type        = bool
   nullable    = true
   default     = null
+
+  validation {
+    condition     = var.enable_status_server != true || (var.server_url != null && var.server_url != "false" && can(regex("^https?://", var.server_url)))
+    error_message = "enable_status_server requires server_url to be a valid http(s) URL (server_url must not be null or \"false\" when enable_status_server is true)."
+  }
 }
 
 variable "auto_update_option" {
-  # Cross-variable rule (enforced by
-  # terraform_data.cross_variable_validations in main.tf):
-  # "Scheduled"/"4" requires scheduled_install_day and scheduled_install_hour.
   description = "AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+)."
   type        = string
   nullable    = true
@@ -33,6 +31,11 @@ variable "auto_update_option" {
   validation {
     condition     = var.auto_update_option == null ? true : contains(["NotifyOnly", "AutoNotify", "Scheduled", "AutoInstall", "NotifyRestart", "2", "3", "4", "5", "7"], var.auto_update_option)
     error_message = "auto_update_option must be one of: NotifyOnly, AutoNotify, Scheduled, AutoInstall, NotifyRestart, 2, 3, 4, 5, 7."
+  }
+
+  validation {
+    condition     = !(var.auto_update_option == "Scheduled" || var.auto_update_option == "4") || (var.scheduled_install_day != null && var.scheduled_install_hour != null)
+    error_message = "auto_update_option \"Scheduled\"/\"4\" requires both scheduled_install_day and scheduled_install_hour to be set."
   }
 }
 
@@ -155,6 +158,11 @@ variable "reschedule_wait_time_minutes" {
     condition     = var.reschedule_wait_time_minutes == null ? true : var.reschedule_wait_time_minutes == "false" ? true : (can(tonumber(var.reschedule_wait_time_minutes)) ? (tonumber(var.reschedule_wait_time_minutes) >= 1 && tonumber(var.reschedule_wait_time_minutes) <= 60 && floor(tonumber(var.reschedule_wait_time_minutes)) == tonumber(var.reschedule_wait_time_minutes)) : false)
     error_message = "reschedule_wait_time_minutes must be null, \"false\", or an integer string between 1 and 60."
   }
+
+  validation {
+    condition     = var.reschedule_wait_time_minutes == null || var.auto_update_option == "Scheduled" || var.auto_update_option == "4"
+    error_message = "reschedule_wait_time_minutes (including \"false\") requires auto_update_option to be \"Scheduled\"/\"4\"."
+  }
 }
 
 variable "target_group" {
@@ -206,6 +214,11 @@ variable "active_hours_end" {
   validation {
     condition     = var.active_hours_end == null ? true : var.active_hours_end == "false" ? true : (can(tonumber(var.active_hours_end)) ? (tonumber(var.active_hours_end) >= 0 && tonumber(var.active_hours_end) <= 23 && floor(tonumber(var.active_hours_end)) == tonumber(var.active_hours_end)) : false)
     error_message = "active_hours_end must be null, \"false\", or an integer string between 0 and 23."
+  }
+
+  validation {
+    condition     = (var.active_hours_start == null && var.active_hours_end == null) || (var.active_hours_start == "false" && var.active_hours_end == "false") || (var.active_hours_start != null && var.active_hours_start != "false" && var.active_hours_end != null && var.active_hours_end != "false")
+    error_message = "active_hours_start and active_hours_end must both be null, both be \"false\", or both be integer strings between 0 and 23."
   }
 }
 

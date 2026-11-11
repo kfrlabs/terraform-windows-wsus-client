@@ -1,5 +1,5 @@
 # Outputs (issue #13). Pure projections of managed state; validation lives in
-# variables.tf and terraform_data guards (issue #11). No preconditions here.
+# variables.tf. No preconditions here.
 output "au_options_effective" {
   description = "Effective AUOptions DWORD value (number) or null when unmanaged."
   value       = local.au_options_effective

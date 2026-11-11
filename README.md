@@ -9,15 +9,12 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 
 | Name | Version |
 |------|---------|
-| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 | <a name="provider_windows"></a> [windows](#provider\_windows) | 0.3.1 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [terraform_data.active_hours_pair](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
-| [terraform_data.cross_variable_validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [windows_registry_value.active_hours_end](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.active_hours_start](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.always_auto_reboot_minutes](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
