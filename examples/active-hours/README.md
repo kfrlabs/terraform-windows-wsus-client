@@ -21,7 +21,9 @@ Host-key verification stays enabled by default; point
 Password auth remains available as an alternative: set `password` on the
 provider block (or `WINDOWS_PASSWORD`) instead of `private_key_path`.
 
-The `wuauserv` service resource is import-only (see the root README
+The `wuauserv` service resource is opt-in (`manage_wuauserv = false`
+by default, so the import below only applies when you set
+`manage_wuauserv = true`) and import-only (see the root README
 "Importing wuauserv" section): import it before the first apply.
 
 ```sh
