@@ -100,8 +100,10 @@ module "wsus_client" {
 ```
 
 Worked examples live in [`examples/basic`](examples/basic) (server URL only),
-[`examples/scheduled`](examples/scheduled) (scheduled installs + status server)
-and [`examples/active-hours`](examples/active-hours) (plus Active Hours).
+[`examples/scheduled`](examples/scheduled) (scheduled installs + status server),
+[`examples/active-hours`](examples/active-hours) (plus Active Hours) and
+[`examples/complete`](examples/complete) (full interface: pairs, booleans,
+alternate server, `wuauserv`, purge).
 Note the examples use `source = "../.."` for local development; replace with
 the Registry source above when consuming the published module.
 See [CHANGELOG.md](CHANGELOG.md) for release notes and breaking changes.

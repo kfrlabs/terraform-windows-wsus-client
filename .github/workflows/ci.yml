@@ -51,6 +51,10 @@ jobs:
         working-directory: examples/active-hours
       - run: terraform validate
         working-directory: examples/active-hours
+      - run: terraform init -backend=false -input=false
+        working-directory: examples/complete
+      - run: terraform validate
+        working-directory: examples/complete
 
   tflint:
     runs-on: ubuntu-latest
