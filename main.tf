@@ -361,14 +361,15 @@ resource "windows_registry_value" "always_auto_reboot_minutes" {
 # false/numeric or single-set combinations are rejected by the
 # preconditions below (variable validation cannot cross-reference; issue
 # #11 will extend these preconditions for the remaining cross-variable
-# rules). Removing a managed value destroys it, i.e. the registry value is
-# deleted. Actual delete behaviour on a live host is still to be verified
-# in #17.
+# rules). Per Microsoft docs (configure active hours via the registry),
+# SetActiveHours/ActiveHoursStart/ActiveHoursEnd live at the WindowsUpdate
+# root key, not in the AU subkey. Removing a managed value destroys it,
+# i.e. the registry value is deleted.
 resource "windows_registry_value" "set_active_hours" {
   count = local.active_hours_both_false || local.active_hours_both_numeric ? 1 : 0
 
   hive         = "HKLM"
-  path         = local.au_path
+  path         = local.wu_path
   name         = "SetActiveHours"
   type         = "REG_DWORD"
   value_string = local.active_hours_set_value
@@ -378,7 +379,7 @@ resource "windows_registry_value" "active_hours_start" {
   count = local.active_hours_both_numeric ? 1 : 0
 
   hive         = "HKLM"
-  path         = local.au_path
+  path         = local.wu_path
   name         = "ActiveHoursStart"
   type         = "REG_DWORD"
   value_string = local.active_hours_start_value
@@ -388,7 +389,7 @@ resource "windows_registry_value" "active_hours_end" {
   count = local.active_hours_both_numeric ? 1 : 0
 
   hive         = "HKLM"
-  path         = local.au_path
+  path         = local.wu_path
   name         = "ActiveHoursEnd"
   type         = "REG_DWORD"
   value_string = local.active_hours_end_value

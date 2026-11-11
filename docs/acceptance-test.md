@@ -121,9 +121,9 @@ Teardown (`state rm` service + `destroy`): 8 destroyed.
 - `apply` → 11 added. Registry additionally:
 
 ```text
-AU\SetActiveHours      REG_DWORD    0x1
-AU\ActiveHoursStart    REG_DWORD    0x8
-AU\ActiveHoursEnd      REG_DWORD    0x12
+SetActiveHours      REG_DWORD    0x1   (WU root, not AU)
+ActiveHoursStart    REG_DWORD    0x8   (WU root, not AU)
+ActiveHoursEnd      REG_DWORD    0x12  (WU root, not AU)
 ```
 
 Re-plan empty. Teardown: 11 destroyed.
