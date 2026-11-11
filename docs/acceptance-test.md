@@ -18,12 +18,12 @@ Server target over OpenSSH. Static checks (`fmt`, `validate`, `tflint`,
 | Item | Value |
 |---|---|
 | Date | 2026-11-11 |
-| Host | 172.18.122.203 (disposable test server, non-production) |
+| Host | `<test-host>` (disposable test server, non-production) |
 | OS | Microsoft Windows Server 2025 Standard, 10.0.26100 |
 | PowerShell | 5.1.26100.33438 |
 | Domain-joined | No (`PartOfDomain = False`) |
-| Caller admin | Yes (`adminlocalecritel`, local Administrators) |
-| OpenSSH | Server present, key auth (`id_rsa`), host key pinned via `known_hosts` |
+| Caller admin | Yes (`<local-admin>`, local Administrators) |
+| OpenSSH | Server present, key auth (SSH key), host key pinned via `known_hosts` |
 | Terraform | v1.11.4 (linux_arm64) |
 | Provider | `kfrlabs/windows` v0.3.1 (locked) |
 | Module source | repo at merge commit for PR #33 (`a7fde96`) + `main.tf` ignore_changes fix (this branch) |
