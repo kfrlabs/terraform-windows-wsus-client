@@ -40,7 +40,10 @@ booleans and the `scheduled_install_hour` exception.
   `no_auto_reboot_with_logged_on_users`, `no_auto_update`,
   `always_auto_reboot_at_scheduled_time`.
 - Exception: `scheduled_install_hour` stays `number` (`0-23`) — there is
-  no `false` meaning for this key on the registry side.
+  no `false` meaning for this key on the registry side. Same exception
+  applies to `always_auto_reboot_at_scheduled_time_minutes` (`number`,
+  `15-180`): the key has no `Enabled` companion, so `"false"` was
+  equivalent to `null` and the sentinel was dropped (issue #44).
 - Semantics for `Value`/`Enabled` pairs:
   - `null` → unmanaged, no resources (`count = 0`);
   - `"false"` (exact lowercase, case-sensitive) → `<Key>Enabled = "0"` only, value resource absent;

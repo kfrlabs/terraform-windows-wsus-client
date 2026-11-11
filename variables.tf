@@ -182,19 +182,17 @@ variable "target_group" {
   }
 }
 
-# Reboot/active-hours settings (ADR-0001).
-# Nullable string with the "false" sentinel (same precedent as issue #9):
-# the issue body says minutes is a number, but "false" must disable the key
-# and a number type cannot hold the string "false".
+# Reboot minutes (no "false" sentinel: the key has no Enabled companion,
+# so "false" was equivalent to null; plain number like scheduled_install_hour).
 variable "always_auto_reboot_at_scheduled_time_minutes" {
-  description = "Minutes after scheduled install to force reboot, 15-180 (AlwaysAutoRebootAtScheduledTimeMinutes). null unmanaged, \"false\" leaves the key unmanaged (no resource)."
-  type        = string
+  description = "Minutes after scheduled install to force reboot, 15-180 (AlwaysAutoRebootAtScheduledTimeMinutes). null leaves the key unmanaged (no resource)."
+  type        = number
   nullable    = true
   default     = null
 
   validation {
-    condition     = var.always_auto_reboot_at_scheduled_time_minutes == null ? true : var.always_auto_reboot_at_scheduled_time_minutes == "false" ? true : (can(tonumber(var.always_auto_reboot_at_scheduled_time_minutes)) ? (tonumber(var.always_auto_reboot_at_scheduled_time_minutes) >= 15 && tonumber(var.always_auto_reboot_at_scheduled_time_minutes) <= 180 && floor(tonumber(var.always_auto_reboot_at_scheduled_time_minutes)) == tonumber(var.always_auto_reboot_at_scheduled_time_minutes)) : false)
-    error_message = "always_auto_reboot_at_scheduled_time_minutes must be null, \"false\", or an integer string between 15 and 180."
+    condition     = var.always_auto_reboot_at_scheduled_time_minutes == null ? true : (var.always_auto_reboot_at_scheduled_time_minutes >= 15 && var.always_auto_reboot_at_scheduled_time_minutes <= 180 && floor(var.always_auto_reboot_at_scheduled_time_minutes) == var.always_auto_reboot_at_scheduled_time_minutes)
+    error_message = "always_auto_reboot_at_scheduled_time_minutes must be null or an integer between 15 and 180."
   }
 }
 
