@@ -166,3 +166,43 @@ variable "target_group" {
     error_message = "target_group must be null, \"false\", or a non-empty string."
   }
 }
+
+# Reboot/active-hours settings (issue #10, PLAN.md §2 and §4, ADR-0001).
+# Nullable string with the "false" sentinel (same precedent as issue #9):
+# the issue body says minutes is a number, but "false" must disable the key
+# and a number type cannot hold the string "false".
+variable "always_auto_reboot_at_scheduled_time_minutes" {
+  description = "Minutes after scheduled install to force reboot, 15-180 (AlwaysAutoRebootAtScheduledTimeMinutes). null unmanaged, \"false\" leaves the key unmanaged (no resource)."
+  type        = string
+  nullable    = true
+  default     = null
+
+  validation {
+    condition     = var.always_auto_reboot_at_scheduled_time_minutes == null ? true : var.always_auto_reboot_at_scheduled_time_minutes == "false" ? true : (can(tonumber(var.always_auto_reboot_at_scheduled_time_minutes)) ? (tonumber(var.always_auto_reboot_at_scheduled_time_minutes) >= 15 && tonumber(var.always_auto_reboot_at_scheduled_time_minutes) <= 180 && floor(tonumber(var.always_auto_reboot_at_scheduled_time_minutes)) == tonumber(var.always_auto_reboot_at_scheduled_time_minutes)) : false)
+    error_message = "always_auto_reboot_at_scheduled_time_minutes must be null, \"false\", or an integer string between 15 and 180."
+  }
+}
+
+variable "active_hours_start" {
+  description = "Active Hours start, 0-23 (ActiveHoursStart). Set jointly with active_hours_end; null unmanaged, \"false\" disables (SetActiveHours=0 only)."
+  type        = string
+  nullable    = true
+  default     = null
+
+  validation {
+    condition     = var.active_hours_start == null ? true : var.active_hours_start == "false" ? true : (can(tonumber(var.active_hours_start)) ? (tonumber(var.active_hours_start) >= 0 && tonumber(var.active_hours_start) <= 23 && floor(tonumber(var.active_hours_start)) == tonumber(var.active_hours_start)) : false)
+    error_message = "active_hours_start must be null, \"false\", or an integer string between 0 and 23."
+  }
+}
+
+variable "active_hours_end" {
+  description = "Active Hours end, 0-23 (ActiveHoursEnd). Set jointly with active_hours_start; null unmanaged, \"false\" disables (SetActiveHours=0 only)."
+  type        = string
+  nullable    = true
+  default     = null
+
+  validation {
+    condition     = var.active_hours_end == null ? true : var.active_hours_end == "false" ? true : (can(tonumber(var.active_hours_end)) ? (tonumber(var.active_hours_end) >= 0 && tonumber(var.active_hours_end) <= 23 && floor(tonumber(var.active_hours_end)) == tonumber(var.active_hours_end)) : false)
+    error_message = "active_hours_end must be null, \"false\", or an integer string between 0 and 23."
+  }
+}
