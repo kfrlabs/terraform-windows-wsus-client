@@ -44,7 +44,7 @@ locals {
   wu_path = "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate"
   au_path = "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU"
 
-  # Provisional helpers for the core resources (issue #6 reuses them).
+  # Derived helpers for the core resources reused below.
   # Exact lowercase "false" only (ADR-0001, case-sensitive).
   is_wus_url = var.server_url != null && var.server_url != "false"
 
@@ -179,8 +179,8 @@ locals {
 # server_url = "false" -> UseWUServer = "0", no WUServer value.
 # server_url = <URL>   -> UseWUServer = "1" plus WUServer = <URL>.
 # Removing a managed value (count flipping to 0) destroys it, i.e. the
-# registry value is deleted. Actual delete behaviour on a live host is
-# still to be verified in #17.
+# registry value is deleted (delete behaviour verified on a live host
+# in #17).
 resource "windows_registry_value" "use_wu_server" {
   count = var.server_url != null ? 1 : 0
 
@@ -245,8 +245,8 @@ resource "windows_service" "wuauserv" {
 # AUOptions = 7 (NotifyRestart) requires Windows Server 2016 or later.
 # null -> unmanaged (count = 0, values left alone).
 # Removing a managed value (count flipping to 0) destroys it, i.e. the
-# registry value is deleted. Actual delete behaviour on a live host is
-# still to be verified in #17. Scheduled mode additionally requires day +
+# registry value is deleted (delete behaviour verified on a live host
+# in #17). Scheduled mode additionally requires day +
 # hour; that cross-variable rule is enforced by
 # terraform_data.cross_variable_validations below.
 resource "windows_registry_value" "au_options" {
@@ -304,8 +304,8 @@ resource "terraform_data" "cross_variable_validations" {
 
 # Simple booleans (issue #8). One resource per non-null entry; null entries
 # are filtered out (unmanaged). Removing a managed value (var flipping back
-# to null) destroys it, i.e. the registry value is deleted. Actual delete
-# behaviour on a live host is still to be verified in #17.
+# to null) destroys it, i.e. the registry value is deleted (verified on a
+# live host in #17).
 resource "windows_registry_value" "boolean_settings" {
   for_each = { for k, v in local.boolean_settings : k => v if v.value != null }
 
@@ -319,8 +319,8 @@ resource "windows_registry_value" "boolean_settings" {
 # Value/Enabled pairs (issue #9). null -> no resources (unmanaged);
 # "false" -> only the Enabled resource with "0"; value -> value resource
 # plus Enabled "1". Removing a managed value (var flipping back to null)
-# destroys it, i.e. the registry value is deleted. Actual delete behaviour
-# on a live host is still to be verified in #17.
+# destroys it, i.e. the registry value is deleted (verified on a live host
+# in #17).
 resource "windows_registry_value" "pair_values" {
   for_each = { for k, v in local.pair_values : k => v if v.value != null }
 
@@ -344,8 +344,7 @@ resource "windows_registry_value" "pair_enabled" {
 # Reboot minutes (issue #10). null or "false" -> no resource (unmanaged,
 # no key); numeric 15-180 -> 1 DWORD resource. Removing a managed value
 # (var flipping back to null/"false") destroys it, i.e. the registry value
-# is deleted. Actual delete behaviour on a live host is still to be verified
-# in #17.
+# is deleted (verified on a live host in #17).
 resource "windows_registry_value" "always_auto_reboot_minutes" {
   count = local.reboot_minutes_value != null ? 1 : 0
 
@@ -359,9 +358,7 @@ resource "windows_registry_value" "always_auto_reboot_minutes" {
 # Active Hours (issue #10). Both null -> 0 resources; both "false" ->
 # SetActiveHours "0" only; both numeric 0-23 -> all 3 resources. Mixed
 # false/numeric or single-set combinations are rejected by the
-# preconditions below (variable validation cannot cross-reference; issue
-# #11 will extend these preconditions for the remaining cross-variable
-# rules). Per Microsoft docs (configure active hours via the registry),
+# preconditions below (see the pairing guard at the end of this file).
 # SetActiveHours/ActiveHoursStart/ActiveHoursEnd live at the WindowsUpdate
 # root key, not in the AU subkey. Removing a managed value destroys it,
 # i.e. the registry value is deleted.
