@@ -213,20 +213,33 @@ No test state files were committed (`*.tfstate`, `.terraform/`,
 - `"false"` → `*Enabled = 0` only; value → value + `Enabled = 1`;
   `null` → untouched. Cross-variable errors are clear and name both variables.
 
-## Scenario purge (opt-in, issue #65) — pending live-host execution
+## Scenario purge (opt-in, issue #65) — executed on a live host (#85)
 
-Not yet executed on a live host. Procedure for a future acceptance run
-(provider `kfrlabs/windows` `>= 0.4.0`):
+Executed 2026-11-11 against `<test-host>` (same host as above),
+Terraform v1.11.4 (linux_arm64), provider `kfrlabs/windows` 0.4.0 (only
+release matching `>= 0.4.0, < 0.5.0`), module at `main` `50e0843`, with
+`server_url = "https://wsus.example.lan:8531"`,
+`enable_status_server = true`, `target_group = "PurgeProbe"` and both
+purge flags `true`:
 
-1. Baseline: record `WindowsUpdate` root and `AU` subkey values
-   (`reg query` both keys) with purge disabled (defaults).
-2. Create one parasite `REG_SZ` under each key out-of-band
-   (e.g. `reg add ... /v PurgeProbeWU`, `reg add ...\AU /v PurgeProbeAU`).
-3. Enable `purge_unknown_wu_values = true` and
-   `purge_unknown_au_values = true`; `plan` should list the parasites in
-   `wu_unknown_value_names` / `au_unknown_value_names`.
-4. `apply`: parasites deleted, every managed value intact
-   (`reg query` comparison against step 1 plus managed values).
-5. `destroy` (purge resources only): registry keys themselves survive
-   (`delete_key_on_destroy = false`); managed values removed as usual.
-6. Remove parasites if still present and verify the baseline is restored.
+1. Baseline (`reg query` both keys, purge disabled): `WindowsUpdate`
+   root held no values; `AU` held `AUOptions = 0x3` only.
+2. Parasites created out-of-band: `PurgeProbeWU` (`REG_SZ`) under the
+   root, `PurgeProbeAU` (`REG_SZ`) under `AU`.
+3. `plan`: 7 to add (5 managed values + 2 `windows_registry_key`
+   resources). `wu_unknown_value_names` / `au_unknown_value_names` are
+   `(known after apply)` at plan time (the provider reads live values
+   during apply).
+4. `apply`: 7 added. Both parasites deleted; every managed value
+   intact (`WUServer`, `WUStatusServer`, `TargetGroup`,
+   `TargetGroupEnabled`, `UseWUServer = 0x1`); unknown-value outputs
+   empty afterwards. Note: the pre-existing unmanaged `AUOptions = 0x3`
+   was also purged, as designed (it was not a managed value).
+5. Re-plan: empty (`No changes`), no phantom diff.
+6. Targeted `destroy` of the two key resources: keys and all values
+   survive. Full `destroy`: 5 value resources destroyed; both keys
+   survive empty (`delete_key_on_destroy = false` proven).
+7. Baseline restored: parasites gone, `AUOptions = 0x3` recreated,
+   `WindowsUpdate` root left with no values (`reg query /s` output
+   identical to the pre-test snapshot; the empty surviving key itself is
+   inert).

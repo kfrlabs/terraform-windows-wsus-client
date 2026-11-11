@@ -294,14 +294,14 @@ variable "active_hours_end" {
 # Non-nullable explicit switches (issue #65): no null=unmanaged meaning.
 # No validation blocks needed (bool type enforces).
 variable "purge_unknown_wu_values" {
-  description = "When true, purge unmanaged values under the WindowsUpdate root key via windows_registry_key (opt-in, experimental: live-host purge acceptance pending, see docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy."
+  description = "When true, purge unmanaged values under the WindowsUpdate root key via windows_registry_key (opt-in, live-host acceptance: docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy."
   type        = bool
   nullable    = false
   default     = false
 }
 
 variable "purge_unknown_au_values" {
-  description = "When true, purge unmanaged values under the WindowsUpdate\\AU subkey via windows_registry_key (opt-in, experimental: live-host purge acceptance pending, see docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy."
+  description = "When true, purge unmanaged values under the WindowsUpdate\\AU subkey via windows_registry_key (opt-in, live-host acceptance: docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy."
   type        = bool
   nullable    = false
   default     = false
