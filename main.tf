@@ -193,9 +193,10 @@ resource "windows_registry_value" "wu_server" {
 }
 
 # enable_status_server = true  -> WUStatusServer follows status_server_url
-# when set, else server_url. enable_status_server = false -> value absent
-# (count = 0, deleted if present). enable_status_server = null -> unmanaged
-# (count = 0).
+# when set, else server_url. enable_status_server = false behaves like
+# null (unmanaged, count = 0): a value created outside Terraform is left
+# alone; a value previously managed by Terraform is deleted via resource
+# destroy. Use purge_unknown_wu_values for full cleanup of unmanaged values.
 # The true-without-server_url combination is rejected by the
 # enable_status_server variable validation; no precondition here.
 resource "windows_registry_value" "wu_status_server" {
