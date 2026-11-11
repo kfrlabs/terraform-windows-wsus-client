@@ -65,7 +65,7 @@ Conclusion: the documented import-first flow is enforced by the provider
 
 `examples/basic` (`server_url` only):
 
-1. `terraform import 'module.wsus.windows_service.wuauserv[0]' wuauserv`
+1. `terraform import 'module.wsus_client.windows_service.wuauserv[0]' wuauserv`
    → `Import successful!`
 2. `plan` → 4 to add + 1 in-place service update (`start_type`
    `Manual -> Automatic` only — no replacement, no value deletion).
@@ -90,7 +90,7 @@ Error: Instance cannot be destroyed
   (lifecycle.prevent_destroy on windows_service.wuauserv[0])
 ```
 
-6. `terraform state rm 'module.wsus.windows_service.wuauserv[0]'` then
+6. `terraform state rm 'module.wsus_client.windows_service.wuauserv[0]'` then
    `destroy` → 4 destroyed. Registry back to baseline
    (`AUOptions = 0x3` only). Service survives (`Stopped`, `Automatic`).
 
