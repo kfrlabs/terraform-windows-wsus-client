@@ -1,7 +1,7 @@
 provider "windows" {
-  host     = var.windows_host
-  username = var.windows_username
-  password = var.windows_password # prefer private_key_path in real use; env fallback supported
+  host             = var.windows_host
+  username         = var.windows_username
+  private_key_path = var.windows_private_key_path
 }
 
 module "wsus_client" {

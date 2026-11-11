@@ -8,9 +8,8 @@ variable "windows_username" {
   type        = string
 }
 
-variable "windows_password" {
-  description = "Password for the Windows provider connection. Leave unset when using key-based auth via environment variables."
+variable "windows_private_key_path" {
+  description = "Path to the SSH private key for the Windows provider connection. Leave unset to use the WINDOWS_PRIVATE_KEY_PATH environment variable."
   type        = string
-  sensitive   = true
   default     = null
 }
