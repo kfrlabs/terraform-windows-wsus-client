@@ -11,7 +11,7 @@ variable "server_url" {
 }
 
 variable "enable_status_server" {
-  description = "When true, WUStatusServer follows server_url. false and null leave it unmanaged (a previously managed value is deleted; use purge_unknown_wu_values for unmanaged values)."
+  description = "When true, WUStatusServer follows server_url (or status_server_url when set). false and null leave it unmanaged (a previously managed value is deleted; use purge_unknown_wu_values for unmanaged values)."
   type        = bool
   nullable    = true
   default     = null
@@ -57,7 +57,7 @@ variable "update_service_url_alternate" {
 }
 
 variable "auto_update_option" {
-  description = "AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+)."
+  description = "AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+). null leaves it unmanaged."
   type        = string
   nullable    = true
   default     = null
@@ -79,7 +79,7 @@ variable "auto_update_option" {
 }
 
 variable "scheduled_install_day" {
-  description = "Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7."
+  description = "Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7. null leaves it unmanaged."
   type        = string
   nullable    = true
   default     = null
@@ -91,7 +91,7 @@ variable "scheduled_install_day" {
 }
 
 variable "scheduled_install_hour" {
-  description = "Scheduled install hour, 0-23 (maps to ScheduledInstallTime)."
+  description = "Scheduled install hour, 0-23 (maps to ScheduledInstallTime). null leaves it unmanaged."
   type        = number
   nullable    = true
   default     = null
