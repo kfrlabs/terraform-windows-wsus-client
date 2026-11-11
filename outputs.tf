@@ -1,0 +1,45 @@
+# Outputs (issue #13). Pure projections of managed state; validation lives in
+# variables.tf and terraform_data guards (issue #11). No preconditions here.
+output "au_options_effective" {
+  description = "Effective AUOptions DWORD value (number) or null when unmanaged."
+  value       = local.au_options_effective
+}
+
+output "wu_server" {
+  description = "Managed WUServer URL (string) or null when unmanaged or disabled."
+  value       = local.is_wus_url ? var.server_url : null
+}
+
+output "status_server" {
+  description = "Managed WUStatusServer URL (string) or null when unmanaged, disabled, or without a valid server_url."
+  value       = var.enable_status_server == true ? (local.is_wus_url ? var.server_url : null) : null
+}
+
+output "scheduled_install_day_effective" {
+  description = "Effective ScheduledInstallDay DWORD value (number) or null when unmanaged."
+  value       = local.scheduled_day_effective
+}
+
+output "managed_registry_values" {
+  description = "Sorted list of managed registry values as \"path\\name\" strings."
+  value = sort(concat(
+    [for r in windows_registry_value.use_wu_server : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.wu_server : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.wu_status_server : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.au_options : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.scheduled_install_day : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.scheduled_install_hour : "${r.path}\\${r.name}"],
+    [for k, r in windows_registry_value.boolean_settings : "${r.path}\\${r.name}"],
+    [for k, r in windows_registry_value.pair_values : "${r.path}\\${r.name}"],
+    [for k, r in windows_registry_value.pair_enabled : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.always_auto_reboot_minutes : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.set_active_hours : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.active_hours_start : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.active_hours_end : "${r.path}\\${r.name}"],
+  ))
+}
+
+output "wuauserv_managed" {
+  description = "Whether the wuauserv service is managed (input intent, known pre-apply)."
+  value       = var.manage_wuauserv
+}
