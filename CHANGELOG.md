@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-No changes yet beyond the `1.0.0` scope below.
+### Fixed
+
+- README tables without HTML anchors (`anchor: false, html: false`)
+  for clean Registry rendering.
 
 ## 1.0.0 - 2026-11-11 (tracks #18)
 

@@ -9,14 +9,14 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.11 |
-| <a name="requirement_windows"></a> [windows](#requirement\_windows) | >= 0.4.0, < 0.5.0 |
+| terraform | >= 1.11 |
+| windows | >= 0.4.0, < 0.5.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_windows"></a> [windows](#provider\_windows) | >= 0.4.0, < 0.5.0 |
+| windows | >= 0.4.0, < 0.5.0 |
 
 ## Resources
 
@@ -44,49 +44,49 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_accept_trusted_publisher_certs"></a> [accept\_trusted\_publisher\_certs](#input\_accept\_trusted\_publisher\_certs) | Accept trusted publisher certificates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_active_hours_end"></a> [active\_hours\_end](#input\_active\_hours\_end) | Active Hours end, 0-23 (ActiveHoursEnd). Set jointly with active\_hours\_start; null unmanaged, "false" disables (SetActiveHours=0 only). | `string` | `null` | no |
-| <a name="input_active_hours_start"></a> [active\_hours\_start](#input\_active\_hours\_start) | Active Hours start, 0-23 (ActiveHoursStart). Set jointly with active\_hours\_end; null unmanaged, "false" disables (SetActiveHours=0 only). | `string` | `null` | no |
-| <a name="input_always_auto_reboot_at_scheduled_time"></a> [always\_auto\_reboot\_at\_scheduled\_time](#input\_always\_auto\_reboot\_at\_scheduled\_time) | Always auto-reboot at scheduled time (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_always_auto_reboot_at_scheduled_time_minutes"></a> [always\_auto\_reboot\_at\_scheduled\_time\_minutes](#input\_always\_auto\_reboot\_at\_scheduled\_time\_minutes) | Minutes after scheduled install to force reboot, 15-180 (AlwaysAutoRebootAtScheduledTimeMinutes). null leaves the key unmanaged (no resource). | `number` | `null` | no |
-| <a name="input_auto_install_minor_updates"></a> [auto\_install\_minor\_updates](#input\_auto\_install\_minor\_updates) | Auto-install minor updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_auto_update_option"></a> [auto\_update\_option](#input\_auto\_update\_option) | AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+). null leaves it unmanaged. | `string` | `null` | no |
-| <a name="input_detection_frequency_hours"></a> [detection\_frequency\_hours](#input\_detection\_frequency\_hours) | Detection frequency in hours, 1-22 (DetectionFrequency). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_disable_dual_scan"></a> [disable\_dual\_scan](#input\_disable\_dual\_scan) | Do not allow update deferral policies to cause scans against Windows Update (DisableDualScan DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_disable_windows_update_access"></a> [disable\_windows\_update\_access](#input\_disable\_windows\_update\_access) | Disable Windows Update access (DWORD 0/1). null unmanaged. Note: true blocks user-initiated update scans; clients depend solely on policy-driven updates. | `bool` | `null` | no |
-| <a name="input_do_not_enforce_tls_cert_pinning"></a> [do\_not\_enforce\_tls\_cert\_pinning](#input\_do\_not\_enforce\_tls\_cert\_pinning) | Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged. WARNING: true weakens update-channel security; set only when required. | `bool` | `null` | no |
-| <a name="input_elevate_non_admins"></a> [elevate\_non\_admins](#input\_elevate\_non\_admins) | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. Note: true widens who can interact with update notifications. | `bool` | `null` | no |
-| <a name="input_enable_status_server"></a> [enable\_status\_server](#input\_enable\_status\_server) | When true, WUStatusServer follows server\_url (or status\_server\_url when set). false and null leave it unmanaged (a previously managed value is deleted; use purge\_unknown\_wu\_values for unmanaged values). | `bool` | `null` | no |
-| <a name="input_manage_wuauserv"></a> [manage\_wuauserv](#input\_manage\_wuauserv) | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `false` | no |
-| <a name="input_no_auto_reboot_with_logged_on_users"></a> [no\_auto\_reboot\_with\_logged\_on\_users](#input\_no\_auto\_reboot\_with\_logged\_on\_users) | No auto-reboot with logged-on users (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_no_auto_update"></a> [no\_auto\_update](#input\_no\_auto\_update) | Disable automatic updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
-| <a name="input_purge_unknown_au_values"></a> [purge\_unknown\_au\_values](#input\_purge\_unknown\_au\_values) | When true, purge unmanaged values under the WindowsUpdate\AU subkey via windows\_registry\_key (opt-in, live-host acceptance: docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy. | `bool` | `false` | no |
-| <a name="input_purge_unknown_wu_values"></a> [purge\_unknown\_wu\_values](#input\_purge\_unknown\_wu\_values) | When true, purge unmanaged values under the WindowsUpdate root key via windows\_registry\_key (opt-in, live-host acceptance: docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy. | `bool` | `false` | no |
-| <a name="input_reboot_relaunch_timeout_minutes"></a> [reboot\_relaunch\_timeout\_minutes](#input\_reboot\_relaunch\_timeout\_minutes) | Reboot relaunch timeout in minutes, 1-1440 (RebootRelaunchTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_reboot_warning_timeout_minutes"></a> [reboot\_warning\_timeout\_minutes](#input\_reboot\_warning\_timeout\_minutes) | Reboot warning timeout in minutes, 1-30 (RebootWarningTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_reschedule_wait_time_minutes"></a> [reschedule\_wait\_time\_minutes](#input\_reschedule\_wait\_time\_minutes) | Reschedule wait time in minutes, 1-60 (RescheduleWaitTime). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_scheduled_install_day"></a> [scheduled\_install\_day](#input\_scheduled\_install\_day) | Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7. null leaves it unmanaged. | `string` | `null` | no |
-| <a name="input_scheduled_install_hour"></a> [scheduled\_install\_hour](#input\_scheduled\_install\_hour) | Scheduled install hour, 0-23 (maps to ScheduledInstallTime). null leaves it unmanaged. | `number` | `null` | no |
-| <a name="input_server_url"></a> [server\_url](#input\_server\_url) | WSUS server URL (http(s)://...). "false" disables UseWUServer. null leaves settings unmanaged. Prefer https (default port 8531): plain http allows update interception on the wire. | `string` | `null` | no |
-| <a name="input_set_proxy_behavior_for_update_detection"></a> [set\_proxy\_behavior\_for\_update\_detection](#input\_set\_proxy\_behavior\_for\_update\_detection) | Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged. WARNING: true lets a user-controlled proxy intercept update traffic. | `bool` | `null` | no |
-| <a name="input_status_server_url"></a> [status\_server\_url](#input\_status\_server\_url) | Optional WUStatusServer override (http(s)://...). null follows server\_url. Only used when enable\_status\_server is true. Prefer https: plain http allows update interception on the wire. | `string` | `null` | no |
-| <a name="input_target_group"></a> [target\_group](#input\_target\_group) | Target group name (TargetGroup). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
-| <a name="input_update_service_url_alternate"></a> [update\_service\_url\_alternate](#input\_update\_service\_url\_alternate) | Alternate download server (UpdateServiceUrlAlternate REG\_SZ at the WU root). null leaves it unmanaged. Requires server\_url to be a URL (downloads replace the intranet update service). Prefer https: plain http allows update interception on the wire. | `string` | `null` | no |
+| accept\_trusted\_publisher\_certs | Accept trusted publisher certificates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| active\_hours\_end | Active Hours end, 0-23 (ActiveHoursEnd). Set jointly with active\_hours\_start; null unmanaged, "false" disables (SetActiveHours=0 only). | `string` | `null` | no |
+| active\_hours\_start | Active Hours start, 0-23 (ActiveHoursStart). Set jointly with active\_hours\_end; null unmanaged, "false" disables (SetActiveHours=0 only). | `string` | `null` | no |
+| always\_auto\_reboot\_at\_scheduled\_time | Always auto-reboot at scheduled time (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| always\_auto\_reboot\_at\_scheduled\_time\_minutes | Minutes after scheduled install to force reboot, 15-180 (AlwaysAutoRebootAtScheduledTimeMinutes). null leaves the key unmanaged (no resource). | `number` | `null` | no |
+| auto\_install\_minor\_updates | Auto-install minor updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| auto\_update\_option | AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+). null leaves it unmanaged. | `string` | `null` | no |
+| detection\_frequency\_hours | Detection frequency in hours, 1-22 (DetectionFrequency). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
+| disable\_dual\_scan | Do not allow update deferral policies to cause scans against Windows Update (DisableDualScan DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| disable\_windows\_update\_access | Disable Windows Update access (DWORD 0/1). null unmanaged. Note: true blocks user-initiated update scans; clients depend solely on policy-driven updates. | `bool` | `null` | no |
+| do\_not\_enforce\_tls\_cert\_pinning | Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged. WARNING: true weakens update-channel security; set only when required. | `bool` | `null` | no |
+| elevate\_non\_admins | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. Note: true widens who can interact with update notifications. | `bool` | `null` | no |
+| enable\_status\_server | When true, WUStatusServer follows server\_url (or status\_server\_url when set). false and null leave it unmanaged (a previously managed value is deleted; use purge\_unknown\_wu\_values for unmanaged values). | `bool` | `null` | no |
+| manage\_wuauserv | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `false` | no |
+| no\_auto\_reboot\_with\_logged\_on\_users | No auto-reboot with logged-on users (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| no\_auto\_update | Disable automatic updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| purge\_unknown\_au\_values | When true, purge unmanaged values under the WindowsUpdate\AU subkey via windows\_registry\_key (opt-in, live-host acceptance: docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy. | `bool` | `false` | no |
+| purge\_unknown\_wu\_values | When true, purge unmanaged values under the WindowsUpdate root key via windows\_registry\_key (opt-in, live-host acceptance: docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy. | `bool` | `false` | no |
+| reboot\_relaunch\_timeout\_minutes | Reboot relaunch timeout in minutes, 1-1440 (RebootRelaunchTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
+| reboot\_warning\_timeout\_minutes | Reboot warning timeout in minutes, 1-30 (RebootWarningTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
+| reschedule\_wait\_time\_minutes | Reschedule wait time in minutes, 1-60 (RescheduleWaitTime). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
+| scheduled\_install\_day | Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7. null leaves it unmanaged. | `string` | `null` | no |
+| scheduled\_install\_hour | Scheduled install hour, 0-23 (maps to ScheduledInstallTime). null leaves it unmanaged. | `number` | `null` | no |
+| server\_url | WSUS server URL (http(s)://...). "false" disables UseWUServer. null leaves settings unmanaged. Prefer https (default port 8531): plain http allows update interception on the wire. | `string` | `null` | no |
+| set\_proxy\_behavior\_for\_update\_detection | Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged. WARNING: true lets a user-controlled proxy intercept update traffic. | `bool` | `null` | no |
+| status\_server\_url | Optional WUStatusServer override (http(s)://...). null follows server\_url. Only used when enable\_status\_server is true. Prefer https: plain http allows update interception on the wire. | `string` | `null` | no |
+| target\_group | Target group name (TargetGroup). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
+| update\_service\_url\_alternate | Alternate download server (UpdateServiceUrlAlternate REG\_SZ at the WU root). null leaves it unmanaged. Requires server\_url to be a URL (downloads replace the intranet update service). Prefer https: plain http allows update interception on the wire. | `string` | `null` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_au_managed_value_names"></a> [au\_managed\_value\_names](#output\_au\_managed\_value\_names) | Value names managed under the WindowsUpdate\AU subkey (purge exclusion list). |
-| <a name="output_au_options_effective"></a> [au\_options\_effective](#output\_au\_options\_effective) | Effective AUOptions DWORD value (number) or null when unmanaged. |
-| <a name="output_au_unknown_value_names"></a> [au\_unknown\_value\_names](#output\_au\_unknown\_value\_names) | Live unmanaged value names under the AU subkey (purge preview; empty unless AU purge is enabled). |
-| <a name="output_managed_registry_values"></a> [managed\_registry\_values](#output\_managed\_registry\_values) | Sorted list of managed registry values as "path\name" strings. |
-| <a name="output_scheduled_install_day_effective"></a> [scheduled\_install\_day\_effective](#output\_scheduled\_install\_day\_effective) | Effective ScheduledInstallDay DWORD value (number) or null when unmanaged. |
-| <a name="output_status_server"></a> [status\_server](#output\_status\_server) | Managed WUStatusServer URL (string) or null when unmanaged, disabled, or without a valid server\_url. |
-| <a name="output_wu_managed_value_names"></a> [wu\_managed\_value\_names](#output\_wu\_managed\_value\_names) | Value names managed under the WindowsUpdate root key (purge exclusion list). |
-| <a name="output_wu_server"></a> [wu\_server](#output\_wu\_server) | Managed WUServer URL (string) or null when unmanaged or disabled. |
-| <a name="output_wu_unknown_value_names"></a> [wu\_unknown\_value\_names](#output\_wu\_unknown\_value\_names) | Live unmanaged value names under the WU root key (purge preview; empty unless WU purge is enabled). |
-| <a name="output_wuauserv_managed"></a> [wuauserv\_managed](#output\_wuauserv\_managed) | Whether the wuauserv service is managed (input intent, known pre-apply). |
+| au\_managed\_value\_names | Value names managed under the WindowsUpdate\AU subkey (purge exclusion list). |
+| au\_options\_effective | Effective AUOptions DWORD value (number) or null when unmanaged. |
+| au\_unknown\_value\_names | Live unmanaged value names under the AU subkey (purge preview; empty unless AU purge is enabled). |
+| managed\_registry\_values | Sorted list of managed registry values as "path\name" strings. |
+| scheduled\_install\_day\_effective | Effective ScheduledInstallDay DWORD value (number) or null when unmanaged. |
+| status\_server | Managed WUStatusServer URL (string) or null when unmanaged, disabled, or without a valid server\_url. |
+| wu\_managed\_value\_names | Value names managed under the WindowsUpdate root key (purge exclusion list). |
+| wu\_server | Managed WUServer URL (string) or null when unmanaged or disabled. |
+| wu\_unknown\_value\_names | Live unmanaged value names under the WU root key (purge preview; empty unless WU purge is enabled). |
+| wuauserv\_managed | Whether the wuauserv service is managed (input intent, known pre-apply). |
 <!-- END_TF_DOCS -->
 
 ## Usage

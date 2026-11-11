@@ -23,11 +23,11 @@ output:
     <!-- END_TF_DOCS -->
 
 settings:
-  anchor: true
+  anchor: false
   description: false
   escape: true
   hide-empty: false
-  html: true
+  html: false
   indent-level: 2
   lockfile: false
   read-comments: true
