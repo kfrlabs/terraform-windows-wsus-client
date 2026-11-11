@@ -25,6 +25,7 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | [windows_registry_value.scheduled_install_day](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.scheduled_install_hour](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.set_active_hours](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
+| [windows_registry_value.update_service_url_alternate](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.use_wu_server](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.wu_server](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.wu_status_server](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
@@ -42,7 +43,9 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_auto_install_minor_updates"></a> [auto\_install\_minor\_updates](#input\_auto\_install\_minor\_updates) | Auto-install minor updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_auto_update_option"></a> [auto\_update\_option](#input\_auto\_update\_option) | AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+). | `string` | `null` | no |
 | <a name="input_detection_frequency_hours"></a> [detection\_frequency\_hours](#input\_detection\_frequency\_hours) | Detection frequency in hours, 1-22 (DetectionFrequency). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
+| <a name="input_disable_dual_scan"></a> [disable\_dual\_scan](#input\_disable\_dual\_scan) | Do not allow update deferral policies to cause scans against Windows Update (DisableDualScan DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_disable_windows_update_access"></a> [disable\_windows\_update\_access](#input\_disable\_windows\_update\_access) | Disable Windows Update access (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| <a name="input_do_not_enforce_tls_cert_pinning"></a> [do\_not\_enforce\_tls\_cert\_pinning](#input\_do\_not\_enforce\_tls\_cert\_pinning) | Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_elevate_non_admins"></a> [elevate\_non\_admins](#input\_elevate\_non\_admins) | Allow non-admins to receive update notifications (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_enable_status_server"></a> [enable\_status\_server](#input\_enable\_status\_server) | When true, WUStatusServer follows server\_url. null leaves it unmanaged. | `bool` | `null` | no |
 | <a name="input_manage_wuauserv"></a> [manage\_wuauserv](#input\_manage\_wuauserv) | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `false` | no |
@@ -54,7 +57,10 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_scheduled_install_day"></a> [scheduled\_install\_day](#input\_scheduled\_install\_day) | Scheduled install day. Names or DWORD values as string: Everyday/0 ... Saturday/7. | `string` | `null` | no |
 | <a name="input_scheduled_install_hour"></a> [scheduled\_install\_hour](#input\_scheduled\_install\_hour) | Scheduled install hour, 0-23 (maps to ScheduledInstallTime). | `number` | `null` | no |
 | <a name="input_server_url"></a> [server\_url](#input\_server\_url) | WSUS server URL (http(s)://...). "false" disables UseWUServer. null leaves settings unmanaged. | `string` | `null` | no |
+| <a name="input_set_proxy_behavior_for_update_detection"></a> [set\_proxy\_behavior\_for\_update\_detection](#input\_set\_proxy\_behavior\_for\_update\_detection) | Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged. | `bool` | `null` | no |
+| <a name="input_status_server_url"></a> [status\_server\_url](#input\_status\_server\_url) | Optional WUStatusServer override (http(s)://...). null follows server\_url. Only used when enable\_status\_server is true. | `string` | `null` | no |
 | <a name="input_target_group"></a> [target\_group](#input\_target\_group) | Target group name (TargetGroup). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
+| <a name="input_update_service_url_alternate"></a> [update\_service\_url\_alternate](#input\_update\_service\_url\_alternate) | Alternate download server (UpdateServiceUrlAlternate REG\_SZ at the WU root). null leaves it unmanaged. | `string` | `null` | no |
 
 ## Outputs
 
@@ -98,7 +104,9 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 | Setting | Registry key(s) | TF input | null / `"false"` / value effect |
 |---|---|---|---|
 | `server_url` | `AU\UseWUServer` DWORD, `WUServer` REG_SZ (WU root) | `server_url` (string) | `null` unmanaged; `"false"` → `UseWUServer = "0"` only; URL → `"1"` + `WUServer = url` |
-| `enable_status_server` | `WUStatusServer` REG_SZ (WU root) | `enable_status_server` (bool) | `null` unmanaged; `false` absent; `true` → `= server_url` (requires `server_url` URL) |
+| `enable_status_server` | `WUStatusServer` REG_SZ (WU root) | `enable_status_server` (bool) | `null` unmanaged; `false` absent; `true` → `= status_server_url` if set, else `= server_url` (requires `server_url` URL) |
+| `status_server_url` | `WUStatusServer` REG_SZ (WU root) | `status_server_url` (string) | `null` → follows `server_url`; URL → that value (only used when `enable_status_server = true`) |
+| `update_service_url_alternate` | `UpdateServiceUrlAlternate` REG_SZ (WU root) | string | `null` unmanaged; URL → managed (alternate download server) |
 | `auto_update_option` | `AU\AUOptions` DWORD | `auto_update_option` (string) | `NotifyOnly`/`2`, `AutoNotify`/`3`, `Scheduled`/`4`, `AutoInstall`/`5`, `NotifyRestart`/`7` (`7` = Server 2016+). `Scheduled` requires day + hour |
 | `scheduled_install_day` | `AU\ScheduledInstallDay` DWORD | `scheduled_install_day` (string) | `Everyday`/`0` … `Saturday`/`7` |
 | `scheduled_install_hour` | `AU\ScheduledInstallTime` DWORD | `scheduled_install_hour` (number) | `0-23`. No `"false"` meaning (plain `number`) |
@@ -109,6 +117,9 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 | `no_auto_reboot_with_logged_on_users` | `AU\NoAutoRebootWithLoggedOnUsers` DWORD | bool | `null` unmanaged; `true`/`false` → `"1"`/`"0"` |
 | `no_auto_update` | `AU\NoAutoUpdate` DWORD | bool | `null` unmanaged; `true`/`false` → `"1"`/`"0"` |
 | `always_auto_reboot_at_scheduled_time` | `AU\AlwaysAutoRebootAtScheduledTime` DWORD | bool | `null` unmanaged; `true`/`false` → `"1"`/`"0"` |
+| `disable_dual_scan` | `DisableDualScan` DWORD (WU root) | bool | `null` unmanaged; `true`/`false` → `"1"`/`"0"` (no Dual Scan against Windows Update) |
+| `do_not_enforce_tls_cert_pinning` | `DoNotEnforceEnterpriseTLSCertPinningForUpdateDetection` DWORD (WU root) | bool | `null` unmanaged; `true`/`false` → `"1"`/`"0"` |
+| `set_proxy_behavior_for_update_detection` | `SetProxyBehaviorForUpdateDetection` DWORD (WU root) | bool | `null` unmanaged; `false` → `"0"` (system proxy only); `true` → `"1"` (user proxy fallback) |
 | `detection_frequency_hours` | `AU\DetectionFrequency` + `DetectionFrequencyEnabled` DWORD | string | `1-22` → value + `Enabled = "1"`; `"false"` → `Enabled = "0"` only; `null` nothing |
 | `reboot_relaunch_timeout_minutes` | `AU\RebootRelaunchTimeout` + `RebootRelaunchTimeoutEnabled` DWORD | string | `1-1440` → value + `Enabled = "1"`; `"false"` → `Enabled = "0"` only; `null` nothing |
 | `reboot_warning_timeout_minutes` | `AU\RebootWarningTimeout` + `RebootWarningTimeoutEnabled` DWORD | string | `1-30` → value + `Enabled = "1"`; `"false"` → `Enabled = "0"` only; `null` nothing |

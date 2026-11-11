@@ -12,7 +12,7 @@ output "wu_server" {
 
 output "status_server" {
   description = "Managed WUStatusServer URL (string) or null when unmanaged, disabled, or without a valid server_url."
-  value       = var.enable_status_server == true ? (local.is_wus_url ? var.server_url : null) : null
+  value       = var.enable_status_server == true ? local.status_server_effective : null
 }
 
 output "scheduled_install_day_effective" {
@@ -26,6 +26,7 @@ output "managed_registry_values" {
     [for r in windows_registry_value.use_wu_server : "${r.path}\\${r.name}"],
     [for r in windows_registry_value.wu_server : "${r.path}\\${r.name}"],
     [for r in windows_registry_value.wu_status_server : "${r.path}\\${r.name}"],
+    [for r in windows_registry_value.update_service_url_alternate : "${r.path}\\${r.name}"],
     [for r in windows_registry_value.au_options : "${r.path}\\${r.name}"],
     [for r in windows_registry_value.scheduled_install_day : "${r.path}\\${r.name}"],
     [for r in windows_registry_value.scheduled_install_hour : "${r.path}\\${r.name}"],

@@ -22,6 +22,30 @@ variable "enable_status_server" {
   }
 }
 
+variable "status_server_url" {
+  description = "Optional WUStatusServer override (http(s)://...). null follows server_url. Only used when enable_status_server is true."
+  type        = string
+  nullable    = true
+  default     = null
+
+  validation {
+    condition     = var.status_server_url == null || can(regex("^https?://", var.status_server_url))
+    error_message = "status_server_url must be null or a valid http(s) URL."
+  }
+}
+
+variable "update_service_url_alternate" {
+  description = "Alternate download server (UpdateServiceUrlAlternate REG_SZ at the WU root). null leaves it unmanaged."
+  type        = string
+  nullable    = true
+  default     = null
+
+  validation {
+    condition     = var.update_service_url_alternate == null || can(regex("^https?://", var.update_service_url_alternate))
+    error_message = "update_service_url_alternate must be null or a valid http(s) URL."
+  }
+}
+
 variable "auto_update_option" {
   description = "AUOptions mode. Names or DWORD values as string: NotifyOnly/2, AutoNotify/3, Scheduled/4, AutoInstall/5, NotifyRestart/7 (2016+)."
   type        = string
@@ -112,6 +136,27 @@ variable "no_auto_update" {
 
 variable "always_auto_reboot_at_scheduled_time" {
   description = "Always auto-reboot at scheduled time (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "disable_dual_scan" {
+  description = "Do not allow update deferral policies to cause scans against Windows Update (DisableDualScan DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "do_not_enforce_tls_cert_pinning" {
+  description = "Do not enforce TLS certificate pinning for Windows Update detection (DWORD 0/1). null unmanaged."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
+variable "set_proxy_behavior_for_update_detection" {
+  description = "Proxy behavior for update detection (DWORD): false uses the system proxy only (0), true allows user proxy as fallback (1). null unmanaged."
   type        = bool
   nullable    = true
   default     = null
