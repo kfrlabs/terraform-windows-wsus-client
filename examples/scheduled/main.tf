@@ -7,7 +7,7 @@ provider "windows" {
 module "wsus_client" {
   source = "../.."
 
-  server_url             = "http://wsus.example.lan:8530"
+  server_url             = "https://wsus.example.lan:8531"
   enable_status_server   = true
   auto_update_option     = "Scheduled"
   scheduled_install_day  = "Tuesday"
