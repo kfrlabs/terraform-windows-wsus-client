@@ -9,12 +9,14 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 
 | Name | Version |
 |------|---------|
-| <a name="provider_windows"></a> [windows](#provider\_windows) | 0.3.1 |
+| <a name="provider_windows"></a> [windows](#provider\_windows) | 0.4.0 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [windows_registry_key.au](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_key) | resource |
+| [windows_registry_key.wu](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_key) | resource |
 | [windows_registry_value.active_hours_end](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.active_hours_start](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
 | [windows_registry_value.always_auto_reboot_minutes](https://registry.terraform.io/providers/kfrlabs/windows/latest/docs/resources/registry_value) | resource |
@@ -51,6 +53,8 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 | <a name="input_manage_wuauserv"></a> [manage\_wuauserv](#input\_manage\_wuauserv) | When true, manages the existing wuauserv service (start\_type Automatic). Requires prior 'terraform import' (see README). Flipping to false or destroy fails closed via prevent\_destroy; use 'terraform state rm' to stop managing. | `bool` | `false` | no |
 | <a name="input_no_auto_reboot_with_logged_on_users"></a> [no\_auto\_reboot\_with\_logged\_on\_users](#input\_no\_auto\_reboot\_with\_logged\_on\_users) | No auto-reboot with logged-on users (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
 | <a name="input_no_auto_update"></a> [no\_auto\_update](#input\_no\_auto\_update) | Disable automatic updates (DWORD 0/1). null unmanaged. | `bool` | `null` | no |
+| <a name="input_purge_unknown_au_values"></a> [purge\_unknown\_au\_values](#input\_purge\_unknown\_au\_values) | When true, purge unmanaged values under the WindowsUpdate\AU subkey via windows\_registry\_key (opt-in, experimental: live-host purge acceptance pending, see docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy. | `bool` | `false` | no |
+| <a name="input_purge_unknown_wu_values"></a> [purge\_unknown\_wu\_values](#input\_purge\_unknown\_wu\_values) | When true, purge unmanaged values under the WindowsUpdate root key via windows\_registry\_key (opt-in, experimental: live-host purge acceptance pending, see docs/acceptance-test.md). The key itself is never deleted. Enabling purge on a key with no managed values under it deletes all values under that key. Do not enable on keys managed by Group Policy. | `bool` | `false` | no |
 | <a name="input_reboot_relaunch_timeout_minutes"></a> [reboot\_relaunch\_timeout\_minutes](#input\_reboot\_relaunch\_timeout\_minutes) | Reboot relaunch timeout in minutes, 1-1440 (RebootRelaunchTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
 | <a name="input_reboot_warning_timeout_minutes"></a> [reboot\_warning\_timeout\_minutes](#input\_reboot\_warning\_timeout\_minutes) | Reboot warning timeout in minutes, 1-30 (RebootWarningTimeout). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
 | <a name="input_reschedule_wait_time_minutes"></a> [reschedule\_wait\_time\_minutes](#input\_reschedule\_wait\_time\_minutes) | Reschedule wait time in minutes, 1-60 (RescheduleWaitTime). null unmanaged, "false" disables (Enabled=0 only). | `string` | `null` | no |
@@ -66,11 +70,15 @@ Every WSUS setting maps to a registry value under `HKLM\SOFTWARE\Policies\Micros
 
 | Name | Description |
 |------|-------------|
+| <a name="output_au_managed_value_names"></a> [au\_managed\_value\_names](#output\_au\_managed\_value\_names) | Value names managed under the WindowsUpdate\AU subkey (purge exclusion list). |
 | <a name="output_au_options_effective"></a> [au\_options\_effective](#output\_au\_options\_effective) | Effective AUOptions DWORD value (number) or null when unmanaged. |
+| <a name="output_au_unknown_value_names"></a> [au\_unknown\_value\_names](#output\_au\_unknown\_value\_names) | Live unmanaged value names under the AU subkey (purge preview; empty unless AU purge is enabled). |
 | <a name="output_managed_registry_values"></a> [managed\_registry\_values](#output\_managed\_registry\_values) | Sorted list of managed registry values as "path\name" strings. |
 | <a name="output_scheduled_install_day_effective"></a> [scheduled\_install\_day\_effective](#output\_scheduled\_install\_day\_effective) | Effective ScheduledInstallDay DWORD value (number) or null when unmanaged. |
 | <a name="output_status_server"></a> [status\_server](#output\_status\_server) | Managed WUStatusServer URL (string) or null when unmanaged, disabled, or without a valid server\_url. |
+| <a name="output_wu_managed_value_names"></a> [wu\_managed\_value\_names](#output\_wu\_managed\_value\_names) | Value names managed under the WindowsUpdate root key (purge exclusion list). |
 | <a name="output_wu_server"></a> [wu\_server](#output\_wu\_server) | Managed WUServer URL (string) or null when unmanaged or disabled. |
+| <a name="output_wu_unknown_value_names"></a> [wu\_unknown\_value\_names](#output\_wu\_unknown\_value\_names) | Live unmanaged value names under the WU root key (purge preview; empty unless WU purge is enabled). |
 | <a name="output_wuauserv_managed"></a> [wuauserv\_managed](#output\_wuauserv\_managed) | Whether the wuauserv service is managed (input intent, known pre-apply). |
 <!-- END_TF_DOCS -->
 
@@ -132,7 +140,7 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 ## Limitations
 
 - **Group Policy conflict.** If a GPO manages the same `WindowsUpdate` keys (or the `wuauserv` startup type), Terraform and GPO will fight. Do not use this module for keys a GPO controls.
-- **No key purge.** There is no registry-key purge behaviour: the `kfrlabs/windows` provider offers `windows_registry_value` only (keys are created implicitly). Stale values must be cleaned up manually (e.g. `Remove-ItemProperty`).
+- **Opt-in key purge (experimental: live-host purge acceptance pending, see `docs/acceptance-test.md`).** `purge_unknown_wu_values` / `purge_unknown_au_values` (default `false`, strictly unchanged default behaviour) purge unmanaged values under the WU root / AU subkey via `windows_registry_key` (provider `>= 0.4.0`). Keys are never deleted (`delete_key_on_destroy = false`). Enabling purge on a key with no managed values under it deletes all values under that key. Plan previews via `wu_unknown_value_names` / `au_unknown_value_names` outputs. Import when enabling on existing keys: `terraform import 'module.wsus.windows_registry_key.wu[0]' 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'` and `terraform import 'module.wsus.windows_registry_key.au[0]' 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'`. Do not enable purge on keys managed by Group Policy.
 - **`AUOptions = 7` (`NotifyRestart`) requires Windows Server 2016 or later.**
 - **`"false"` literal edge.** `target_group = "false"` means disabled (`TargetGroupEnabled = "0"`), so a group literally named `false` cannot be managed. Case variants (`"False"`, `"FALSE"`, ...) are rejected by validation. Same exact-lowercase rule applies to every `"false"` sentinel.
 

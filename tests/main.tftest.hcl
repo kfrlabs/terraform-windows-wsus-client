@@ -487,3 +487,239 @@ run "reboot_minutes_out_of_range_rejected" {
     var.always_auto_reboot_at_scheduled_time_minutes,
   ]
 }
+
+# --- Purge (issue #65) -------------------------------------------------------
+
+run "purge_defaults_off_empty" {
+  command = plan
+
+  assert {
+    condition     = length(output.wu_managed_value_names) == 0
+    error_message = "WU managed list should be empty by default."
+  }
+
+  assert {
+    condition     = length(output.au_managed_value_names) == 0
+    error_message = "AU managed list should be empty by default."
+  }
+
+  assert {
+    condition     = length(output.managed_registry_values) == 0
+    error_message = "Defaults should manage no registry values."
+  }
+
+  assert {
+    condition     = length(output.wu_unknown_value_names) == 0
+    error_message = "WU unknown values should be empty when purge is disabled (no key resources)."
+  }
+
+  assert {
+    condition     = length(output.au_unknown_value_names) == 0
+    error_message = "AU unknown values should be empty when purge is disabled (no key resources)."
+  }
+}
+
+run "purge_per_key_server_only" {
+  command = plan
+
+  variables {
+    server_url              = "http://wsus.example.lan:8530"
+    purge_unknown_wu_values = true
+    purge_unknown_au_values = true
+  }
+
+  assert {
+    condition     = length(output.wu_managed_value_names) == 1 && contains(output.wu_managed_value_names, "WUServer")
+    error_message = "WU managed list should contain only WUServer."
+  }
+
+  assert {
+    condition     = length(output.au_managed_value_names) == 1 && contains(output.au_managed_value_names, "UseWUServer")
+    error_message = "AU managed list should contain only UseWUServer."
+  }
+
+  assert {
+    condition     = length(output.managed_registry_values) == 2
+    error_message = "server_url only should manage exactly 2 registry values."
+  }
+}
+
+run "purge_sentinel_false_values" {
+  command = plan
+
+  variables {
+    server_url                = "false"
+    target_group              = "false"
+    active_hours_start        = "false"
+    active_hours_end          = "false"
+    detection_frequency_hours = "false"
+    purge_unknown_wu_values   = true
+    purge_unknown_au_values   = true
+  }
+
+  assert {
+    condition     = length(output.wu_managed_value_names) == 2 && contains(output.wu_managed_value_names, "TargetGroupEnabled") && contains(output.wu_managed_value_names, "SetActiveHours")
+    error_message = "WU managed list should contain only TargetGroupEnabled and SetActiveHours for \"false\" sentinels."
+  }
+
+  assert {
+    condition     = length(output.au_managed_value_names) == 2 && contains(output.au_managed_value_names, "UseWUServer") && contains(output.au_managed_value_names, "DetectionFrequencyEnabled")
+    error_message = "AU managed list should contain only UseWUServer and DetectionFrequencyEnabled for \"false\" sentinels."
+  }
+
+  assert {
+    condition     = length(output.managed_registry_values) == 4
+    error_message = "False-sentinel config should manage exactly 4 registry values."
+  }
+
+  assert {
+    condition     = !contains(output.wu_managed_value_names, "WUServer") && !contains(output.wu_managed_value_names, "TargetGroup") && !contains(output.wu_managed_value_names, "ActiveHoursStart")
+    error_message = "WU managed list must exclude value names disabled by \"false\" sentinels."
+  }
+
+  assert {
+    condition     = !contains(output.au_managed_value_names, "DetectionFrequency")
+    error_message = "AU managed list must exclude DetectionFrequency disabled by the \"false\" sentinel."
+  }
+}
+
+run "purge_managed_lists_full" {
+  command = plan
+
+  variables {
+    server_url                                   = "http://wsus.example.lan:8530"
+    enable_status_server                         = true
+    update_service_url_alternate                 = "http://cdn.example.lan:8530"
+    auto_update_option                           = "Scheduled"
+    scheduled_install_day                        = "Tuesday"
+    scheduled_install_hour                       = 2
+    accept_trusted_publisher_certs               = true
+    disable_dual_scan                            = true
+    auto_install_minor_updates                   = false
+    no_auto_update                               = true
+    always_auto_reboot_at_scheduled_time         = true
+    detection_frequency_hours                    = "22"
+    reboot_warning_timeout_minutes               = "false"
+    target_group                                 = "Servers"
+    always_auto_reboot_at_scheduled_time_minutes = 30
+    active_hours_start                           = "8"
+    active_hours_end                             = "18"
+    purge_unknown_wu_values                      = true
+    purge_unknown_au_values                      = true
+  }
+
+  assert {
+    condition     = length(output.wu_managed_value_names) == 10
+    error_message = "WU managed list should contain 10 names."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "WUServer")
+    error_message = "WU managed list should contain WUServer."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "WUStatusServer")
+    error_message = "WU managed list should contain WUStatusServer."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "UpdateServiceUrlAlternate")
+    error_message = "WU managed list should contain UpdateServiceUrlAlternate."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "AcceptTrustedPublisherCerts")
+    error_message = "WU managed list should contain AcceptTrustedPublisherCerts."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "DisableDualScan")
+    error_message = "WU managed list should contain DisableDualScan."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "TargetGroup")
+    error_message = "WU managed list should contain TargetGroup."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "TargetGroupEnabled")
+    error_message = "WU managed list should contain TargetGroupEnabled."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "SetActiveHours")
+    error_message = "WU managed list should contain SetActiveHours."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "ActiveHoursStart")
+    error_message = "WU managed list should contain ActiveHoursStart."
+  }
+
+  assert {
+    condition     = contains(output.wu_managed_value_names, "ActiveHoursEnd")
+    error_message = "WU managed list should contain ActiveHoursEnd."
+  }
+
+  assert {
+    condition     = length(output.au_managed_value_names) == 11
+    error_message = "AU managed list should contain 11 names."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "UseWUServer")
+    error_message = "AU managed list should contain UseWUServer."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "AUOptions")
+    error_message = "AU managed list should contain AUOptions."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "ScheduledInstallDay")
+    error_message = "AU managed list should contain ScheduledInstallDay."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "ScheduledInstallTime")
+    error_message = "AU managed list should contain ScheduledInstallTime."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "AutoInstallMinorUpdates")
+    error_message = "AU managed list should contain AutoInstallMinorUpdates."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "NoAutoUpdate")
+    error_message = "AU managed list should contain NoAutoUpdate."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "AlwaysAutoRebootAtScheduledTime")
+    error_message = "AU managed list should contain AlwaysAutoRebootAtScheduledTime."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "DetectionFrequency")
+    error_message = "AU managed list should contain DetectionFrequency."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "DetectionFrequencyEnabled")
+    error_message = "AU managed list should contain DetectionFrequencyEnabled."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "RebootWarningTimeoutEnabled")
+    error_message = "AU managed list should contain RebootWarningTimeoutEnabled."
+  }
+
+  assert {
+    condition     = contains(output.au_managed_value_names, "AlwaysAutoRebootAtScheduledTimeMinutes")
+    error_message = "AU managed list should contain AlwaysAutoRebootAtScheduledTimeMinutes."
+  }
+}

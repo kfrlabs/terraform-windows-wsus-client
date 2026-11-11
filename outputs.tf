@@ -44,3 +44,23 @@ output "wuauserv_managed" {
   description = "Whether the wuauserv service is managed (input intent, known pre-apply)."
   value       = var.manage_wuauserv
 }
+
+output "wu_managed_value_names" {
+  description = "Value names managed under the WindowsUpdate root key (purge exclusion list)."
+  value       = local.wu_managed_value_names
+}
+
+output "au_managed_value_names" {
+  description = "Value names managed under the WindowsUpdate\\AU subkey (purge exclusion list)."
+  value       = local.au_managed_value_names
+}
+
+output "wu_unknown_value_names" {
+  description = "Live unmanaged value names under the WU root key (purge preview; empty unless WU purge is enabled)."
+  value       = try(windows_registry_key.wu[0].unknown_value_names, [])
+}
+
+output "au_unknown_value_names" {
+  description = "Live unmanaged value names under the AU subkey (purge preview; empty unless AU purge is enabled)."
+  value       = try(windows_registry_key.au[0].unknown_value_names, [])
+}

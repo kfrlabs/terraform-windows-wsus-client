@@ -204,3 +204,21 @@ No test state files were committed (`*.tfstate`, `.terraform/`,
   closed via `prevent_destroy`, `state rm` escape hatch proven.
 - `"false"` → `*Enabled = 0` only; value → value + `Enabled = 1`;
   `null` → untouched. Cross-variable errors are clear and name both variables.
+
+## Scenario purge (opt-in, issue #65) — pending live-host execution
+
+Not yet executed on a live host. Procedure for a future acceptance run
+(provider `kfrlabs/windows` `>= 0.4.0`):
+
+1. Baseline: record `WindowsUpdate` root and `AU` subkey values
+   (`reg query` both keys) with purge disabled (defaults).
+2. Create one parasite `REG_SZ` under each key out-of-band
+   (e.g. `reg add ... /v PurgeProbeWU`, `reg add ...\AU /v PurgeProbeAU`).
+3. Enable `purge_unknown_wu_values = true` and
+   `purge_unknown_au_values = true`; `plan` should list the parasites in
+   `wu_unknown_value_names` / `au_unknown_value_names`.
+4. `apply`: parasites deleted, every managed value intact
+   (`reg query` comparison against step 1 plus managed values).
+5. `destroy` (purge resources only): registry keys themselves survive
+   (`delete_key_on_destroy = false`); managed values removed as usual.
+6. Remove parasites if still present and verify the baseline is restored.
