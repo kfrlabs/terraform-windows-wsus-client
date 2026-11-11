@@ -135,7 +135,7 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 | `target_group` | `TargetGroup` REG_SZ + `TargetGroupEnabled` DWORD (WU root) | string | name → value + `Enabled = "1"`; `"false"` → `Enabled = "0"` only; `null` nothing |
 | `always_auto_reboot_at_scheduled_time_minutes` | `AU\AlwaysAutoRebootAtScheduledTimeMinutes` DWORD | number | `15-180` → one DWORD resource; `null` → no resource (unmanaged) |
 | `active_hours_start` / `active_hours_end` | `SetActiveHours` + `ActiveHoursStart` + `ActiveHoursEnd` DWORD (WU root) | string pair | Both `null` → nothing; both `"false"` → `SetActiveHours = "0"` only; both `0-23` → `"1"` + Start + End. Mixed states rejected |
-| service `wuauserv` | `enable => true` | `manage_wuauserv` (bool, default `false`) | Opt-in, import-only (see below). `false` leaves the service unmanaged |
+| service `wuauserv` | `start_type = "Automatic"` (other attributes ignored via `ignore_changes`) | `manage_wuauserv` (bool, default `false`) | Opt-in, import-only (see below). `false` leaves the service unmanaged |
 
 ## Limitations
 
