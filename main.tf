@@ -50,109 +50,70 @@ locals {
 
   # Simple booleans. null stays null (unmanaged);
   # true/false map to DWORD "1"/"0". WU root keys vs AU subkey per table.
-  boolean_settings = {
-    accept_trusted_publisher_certs = {
-      path  = local.wu_path
-      name  = "AcceptTrustedPublisherCerts"
-      value = var.accept_trusted_publisher_certs == null ? null : (var.accept_trusted_publisher_certs ? "1" : "0")
-    }
-    disable_windows_update_access = {
-      path  = local.wu_path
-      name  = "DisableWindowsUpdateAccess"
-      value = var.disable_windows_update_access == null ? null : (var.disable_windows_update_access ? "1" : "0")
-    }
-    elevate_non_admins = {
-      path  = local.wu_path
-      name  = "ElevateNonAdmins"
-      value = var.elevate_non_admins == null ? null : (var.elevate_non_admins ? "1" : "0")
-    }
-    auto_install_minor_updates = {
-      path  = local.au_path
-      name  = "AutoInstallMinorUpdates"
-      value = var.auto_install_minor_updates == null ? null : (var.auto_install_minor_updates ? "1" : "0")
-    }
-    no_auto_reboot_with_logged_on_users = {
-      path  = local.au_path
-      name  = "NoAutoRebootWithLoggedOnUsers"
-      value = var.no_auto_reboot_with_logged_on_users == null ? null : (var.no_auto_reboot_with_logged_on_users ? "1" : "0")
-    }
-    no_auto_update = {
-      path  = local.au_path
-      name  = "NoAutoUpdate"
-      value = var.no_auto_update == null ? null : (var.no_auto_update ? "1" : "0")
-    }
-    always_auto_reboot_at_scheduled_time = {
-      path  = local.au_path
-      name  = "AlwaysAutoRebootAtScheduledTime"
-      value = var.always_auto_reboot_at_scheduled_time == null ? null : (var.always_auto_reboot_at_scheduled_time ? "1" : "0")
-    }
+  # Single input/metadata tables: boolean_settings, pair_values and
+  # pair_enabled are derived below with one `for` each, so the key list and
+  # the null/"false"/value semantics live in exactly one place per table.
+  boolean_inputs = {
+    accept_trusted_publisher_certs       = var.accept_trusted_publisher_certs
+    disable_windows_update_access        = var.disable_windows_update_access
+    elevate_non_admins                   = var.elevate_non_admins
+    auto_install_minor_updates           = var.auto_install_minor_updates
+    no_auto_reboot_with_logged_on_users  = var.no_auto_reboot_with_logged_on_users
+    no_auto_update                       = var.no_auto_update
+    always_auto_reboot_at_scheduled_time = var.always_auto_reboot_at_scheduled_time
   }
+
+  boolean_meta = {
+    accept_trusted_publisher_certs       = { path = local.wu_path, name = "AcceptTrustedPublisherCerts" }
+    disable_windows_update_access        = { path = local.wu_path, name = "DisableWindowsUpdateAccess" }
+    elevate_non_admins                   = { path = local.wu_path, name = "ElevateNonAdmins" }
+    auto_install_minor_updates           = { path = local.au_path, name = "AutoInstallMinorUpdates" }
+    no_auto_reboot_with_logged_on_users  = { path = local.au_path, name = "NoAutoRebootWithLoggedOnUsers" }
+    no_auto_update                       = { path = local.au_path, name = "NoAutoUpdate" }
+    always_auto_reboot_at_scheduled_time = { path = local.au_path, name = "AlwaysAutoRebootAtScheduledTime" }
+  }
+
+  boolean_settings = { for k, raw in local.boolean_inputs : k => {
+    path  = local.boolean_meta[k].path
+    name  = local.boolean_meta[k].name
+    value = raw == null ? null : (raw ? "1" : "0")
+  } }
 
   # Value/Enabled pairs. null stays null (unmanaged,
   # no resources); "false" disables (value null, Enabled "0"); any other
   # valid value sets the value plus Enabled "1". tonumber() runs only after
   # null/"false" have been excluded (ADR-0001). Exact lowercase "false"
   # only (ADR-0001, case-sensitive).
-  pair_values = {
-    detection_frequency_hours = {
-      path  = local.au_path
-      name  = "DetectionFrequency"
-      type  = "REG_DWORD"
-      value = var.detection_frequency_hours == null || var.detection_frequency_hours == "false" ? null : tostring(tonumber(var.detection_frequency_hours))
-    }
-    reboot_relaunch_timeout_minutes = {
-      path  = local.au_path
-      name  = "RebootRelaunchTimeout"
-      type  = "REG_DWORD"
-      value = var.reboot_relaunch_timeout_minutes == null || var.reboot_relaunch_timeout_minutes == "false" ? null : tostring(tonumber(var.reboot_relaunch_timeout_minutes))
-    }
-    reboot_warning_timeout_minutes = {
-      path  = local.au_path
-      name  = "RebootWarningTimeout"
-      type  = "REG_DWORD"
-      value = var.reboot_warning_timeout_minutes == null || var.reboot_warning_timeout_minutes == "false" ? null : tostring(tonumber(var.reboot_warning_timeout_minutes))
-    }
-    reschedule_wait_time_minutes = {
-      path  = local.au_path
-      name  = "RescheduleWaitTime"
-      type  = "REG_DWORD"
-      value = var.reschedule_wait_time_minutes == null || var.reschedule_wait_time_minutes == "false" ? null : tostring(tonumber(var.reschedule_wait_time_minutes))
-    }
-    target_group = {
-      path  = local.wu_path
-      name  = "TargetGroup"
-      type  = "REG_SZ"
-      value = var.target_group == null || var.target_group == "false" ? null : var.target_group
-    }
+  pair_inputs = {
+    detection_frequency_hours       = var.detection_frequency_hours
+    reboot_relaunch_timeout_minutes = var.reboot_relaunch_timeout_minutes
+    reboot_warning_timeout_minutes  = var.reboot_warning_timeout_minutes
+    reschedule_wait_time_minutes    = var.reschedule_wait_time_minutes
+    target_group                    = var.target_group
   }
 
-  pair_enabled = {
-    detection_frequency_hours = {
-      path  = local.au_path
-      name  = "DetectionFrequencyEnabled"
-      value = var.detection_frequency_hours == null ? null : (var.detection_frequency_hours == "false" ? "0" : "1")
-    }
-    reboot_relaunch_timeout_minutes = {
-      path  = local.au_path
-      name  = "RebootRelaunchTimeoutEnabled"
-      value = var.reboot_relaunch_timeout_minutes == null ? null : (var.reboot_relaunch_timeout_minutes == "false" ? "0" : "1")
-    }
-    reboot_warning_timeout_minutes = {
-      path  = local.au_path
-      name  = "RebootWarningTimeoutEnabled"
-      value = var.reboot_warning_timeout_minutes == null ? null : (var.reboot_warning_timeout_minutes == "false" ? "0" : "1")
-    }
-    reschedule_wait_time_minutes = {
-      path  = local.au_path
-      name  = "RescheduleWaitTimeEnabled"
-      value = var.reschedule_wait_time_minutes == null ? null : (var.reschedule_wait_time_minutes == "false" ? "0" : "1")
-    }
-    target_group = {
-      path  = local.wu_path
-      name  = "TargetGroupEnabled"
-      value = var.target_group == null ? null : (var.target_group == "false" ? "0" : "1")
-    }
+  # numeric = false for the free-string TargetGroup (no tonumber);
+  # value and Enabled share the same key path per pair.
+  pair_meta = {
+    detection_frequency_hours       = { path = local.au_path, name = "DetectionFrequency", type = "REG_DWORD", enabled = "DetectionFrequencyEnabled", numeric = true }
+    reboot_relaunch_timeout_minutes = { path = local.au_path, name = "RebootRelaunchTimeout", type = "REG_DWORD", enabled = "RebootRelaunchTimeoutEnabled", numeric = true }
+    reboot_warning_timeout_minutes  = { path = local.au_path, name = "RebootWarningTimeout", type = "REG_DWORD", enabled = "RebootWarningTimeoutEnabled", numeric = true }
+    reschedule_wait_time_minutes    = { path = local.au_path, name = "RescheduleWaitTime", type = "REG_DWORD", enabled = "RescheduleWaitTimeEnabled", numeric = true }
+    target_group                    = { path = local.wu_path, name = "TargetGroup", type = "REG_SZ", enabled = "TargetGroupEnabled", numeric = false }
   }
+
+  pair_values = { for k, raw in local.pair_inputs : k => {
+    path  = local.pair_meta[k].path
+    name  = local.pair_meta[k].name
+    type  = local.pair_meta[k].type
+    value = raw == null || raw == "false" ? null : (local.pair_meta[k].numeric ? tostring(tonumber(raw)) : raw)
+  } }
+
+  pair_enabled = { for k, raw in local.pair_inputs : k => {
+    path  = local.pair_meta[k].path
+    name  = local.pair_meta[k].enabled
+    value = raw == null ? null : (raw == "false" ? "0" : "1")
+  } }
 
   # Reboot minutes has no Enabled companion: null -> no resource
   # (unmanaged, no key); numeric 15-180 -> 1 DWORD resource.

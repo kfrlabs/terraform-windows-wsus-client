@@ -232,6 +232,25 @@ run "pair_value_enables" {
   }
 }
 
+run "boolean_true_and_false" {
+  command = plan
+
+  variables {
+    no_auto_update             = true
+    auto_install_minor_updates = false
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\\NoAutoUpdate")
+    error_message = "NoAutoUpdate should be managed when true."
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\\AutoInstallMinorUpdates")
+    error_message = "AutoInstallMinorUpdates should be managed when false."
+  }
+}
+
 run "target_group_case_variant_rejected" {
   command = plan
 
@@ -259,6 +278,24 @@ run "target_group_false_disables_only" {
   assert {
     condition     = !contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\TargetGroup")
     error_message = "TargetGroup value must be absent when target_group is \"false\"."
+  }
+}
+
+run "target_group_value_enables" {
+  command = plan
+
+  variables {
+    target_group = "Servers"
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\TargetGroup")
+    error_message = "TargetGroup value should be managed for \"Servers\"."
+  }
+
+  assert {
+    condition     = contains(output.managed_registry_values, "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\TargetGroupEnabled")
+    error_message = "TargetGroupEnabled should be managed for \"Servers\"."
   }
 }
 
