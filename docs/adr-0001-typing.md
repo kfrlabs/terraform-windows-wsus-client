@@ -68,3 +68,19 @@ booleans and the `scheduled_install_hour` exception.
 - `variables.tf` already conforms to option 1 (verified read-only);
   no retyping required.
 - Traceability aligned, referenced by #4, #8, #9, #10.
+
+## Amendments (2026-11-11, issue #83)
+
+Supersede stale statements above; the original decision is unchanged.
+
+- There are now 10 plain booleans (issue #48 added
+  `disable_dual_scan`, `do_not_enforce_tls_cert_pinning`,
+  `set_proxy_behavior_for_update_detection`).
+- `always_auto_reboot_at_scheduled_time_minutes` is a plain `number`
+  (`15-180`); it is no longer a value-or-`"false"` parameter (issue #44).
+- Case variants of `"false"` are rejected, not normalized (issue #43):
+  only exact lowercase `"false"` disables; `"False"`/`"FALSE"` fail
+  validation (e.g. `target_group`).
+- Cross-variable rules are native `validation {}` blocks in
+  `variables.tf` (issue #42 replaced the `terraform_data` preconditions;
+  legacy guard blocks are dropped via `removed {}` in `main.tf`).
