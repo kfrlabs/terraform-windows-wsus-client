@@ -123,7 +123,7 @@ written as decimal strings (e.g. `"4"`), as required by the provider.
 - **Group Policy conflict.** If a GPO manages the same `WindowsUpdate` keys (or the `wuauserv` startup type), Terraform and GPO will fight. Do not use this module for keys a GPO controls.
 - **No key purge.** There is no registry-key purge behaviour: the `kfrlabs/windows` provider offers `windows_registry_value` only (keys are created implicitly). Stale values must be cleaned up manually (e.g. `Remove-ItemProperty`).
 - **`AUOptions = 7` (`NotifyRestart`) requires Windows Server 2016 or later.**
-- **`"false"` literal edge.** `target_group = "false"` means disabled (`TargetGroupEnabled = "0"`), so a group literally named `false` cannot be managed. `"False"` (capital F) would create a group of that name instead of disabling. Same exact-lowercase rule applies to every `"false"` sentinel.
+- **`"false"` literal edge.** `target_group = "false"` means disabled (`TargetGroupEnabled = "0"`), so a group literally named `false` cannot be managed. Case variants (`"False"`, `"FALSE"`, ...) are rejected by validation. Same exact-lowercase rule applies to every `"false"` sentinel.
 
 ## Importing wuauserv
 
