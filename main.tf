@@ -343,9 +343,9 @@ resource "windows_registry_value" "pair_enabled" {
   value_string = each.value.value
 }
 
-# Reboot minutes (issue #10). null or "false" -> no resource (unmanaged,
+# Reboot minutes (issue #10). null -> no resource (unmanaged,
 # no key); numeric 15-180 -> 1 DWORD resource. Removing a managed value
-# (var flipping back to null/"false") destroys it, i.e. the registry value
+# (var flipping back to null) destroys it, i.e. the registry value
 # is deleted (verified on a live host in #17).
 resource "windows_registry_value" "always_auto_reboot_minutes" {
   count = local.reboot_minutes_value != null ? 1 : 0
