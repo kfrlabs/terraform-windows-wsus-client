@@ -47,8 +47,7 @@ locals {
 
   # Provisional helpers for the core resources (issue #6 reuses them).
   # Exact lowercase "false" only (ADR-0001, case-sensitive).
-  is_wus_disabled = var.server_url == "false"
-  is_wus_url      = var.server_url != null && var.server_url != "false"
+  is_wus_url = var.server_url != null && var.server_url != "false"
 
   # Simple booleans (issue #8, PLAN.md §2). null stays null (unmanaged);
   # true/false map to DWORD "1"/"0". WU root keys vs AU subkey per table.
